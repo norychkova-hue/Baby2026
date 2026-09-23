@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5A3FC8">
+<style>html,body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="tg.js"></script>
+</head>
+<body>
+<title>Дыхание в родах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+  :root {
+    --bg: #F2F0F5;
+    --surface: #FFFFFF;
+    --surface-2: #E9E5F0;
+    --ink: #1E1B2E;
+    --muted: #686379;
+    --line: #DAD5E3;
+    --accent: #5A3FC8;
+    --accent-ink: #FFFFFF;
+    --inhale: #2F8F7A;
+    --inhale-soft: #D9F0EA;
+    --wave: #E0552F;
+    --wave-soft: #FBE3DA;
+    --baby: #9A4C8E;
+    --baby-soft: #F6E4F2;
+    --crit: #B8232A;
+    --crit-soft: #F9DDDE;
+    --display: "Unbounded", "Onest", system-ui, sans-serif;
+    --body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #13111D;
+      --surface: #1D1A2B;
+      --surface-2: #27233A;
+      --ink: #EEEAF7;
+      --muted: #A49EB8;
+      --line: #342F4A;
+      --accent: #A58FFF;
+      --accent-ink: #15121F;
+      --inhale: #6BD3BA;
+      --inhale-soft: #173229;
+      --wave: #FF7B56;
+      --wave-soft: #3A2220;
+      --baby: #E79BD9;
+      --baby-soft: #33203A;
+      --crit: #FF7F84;
+      --crit-soft: #3E1D22;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #13111D;
+    --surface: #1D1A2B;
+    --surface-2: #27233A;
+    --ink: #EEEAF7;
+    --muted: #A49EB8;
+    --line: #342F4A;
+    --accent: #A58FFF;
+    --accent-ink: #15121F;
+    --inhale: #6BD3BA;
+    --inhale-soft: #173229;
+    --wave: #FF7B56;
+    --wave-soft: #3A2220;
+    --baby: #E79BD9;
+    --baby-soft: #33203A;
+    --crit: #FF7F84;
+    --crit-soft: #3E1D22;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 20px 48px;
+  }
+  .wrap { max-width: 540px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+  h3 { font-size: 16px; margin: 0 0 4px; }
+  p { margin: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  button:focus-visible, input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 3px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  header a { color: var(--accent); font-weight: 600; font-size: 15px; text-decoration: none; }
+  .lede { color: var(--muted); font-size: 15px; margin-top: -8px; }
+
+  /* Stage picker — labour stages are a true sequence */
+  .stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .stages button {
+    background: none; border: 0; border-top: 4px solid var(--line); padding: 8px 2px 4px;
+    text-align: left; font-size: 12px; line-height: 1.25; color: var(--muted);
+  }
+  .stages button[aria-pressed="true"] { color: var(--ink); font-weight: 600; border-top-color: var(--accent); }
+  .stages button.past { border-top-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+  .stages small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+
+  /* Technique switch */
+  .modes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .modes button { background: var(--surface-2); border: 0; border-radius: 999px; padding: 7px 13px; font-size: 14px; font-weight: 500; color: var(--muted); }
+  .modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  /* Pacer */
+  .pacer { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 18px 16px 16px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .pacer .tname { font-family: var(--display); font-weight: 500; font-size: 17px; text-align: center; text-wrap: balance; }
+  .pacer .rhythm { font-size: 13px; color: var(--muted); text-align: center; margin-top: 2px; }
+  .orb-box { position: relative; width: min(260px, 72vw); aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; }
+  .orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px dashed var(--line); }
+  .orb {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--c, var(--accent)) 30%, var(--surface)), color-mix(in srgb, var(--c, var(--accent)) 70%, var(--surface)));
+    transform: scale(.55); transition-property: transform, background; transition-timing-function: ease-in-out;
+  }
+  .orb-text { position: relative; text-align: center; padding: 20px; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .orb-text .cue { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.15; }
+  .orb-text .sub { font-size: 14px; line-height: 1.3; max-width: 17ch; text-wrap: balance; }
+  .orb-text .count { font-family: var(--display); font-size: 15px; font-weight: 500; opacity: .75; }
+  .bar { width: 100%; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--c, var(--accent)); border-radius: 3px; }
+  .controls { display: flex; gap: 10px; width: 100%; }
+  .go { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-family: var(--display); font-weight: 700; font-size: 16px; background: var(--accent); color: var(--accent-ink); }
+  .go.live { background: var(--surface-2); color: var(--ink); }
+  .elapsed { font-size: 14px; color: var(--muted); display: flex; gap: 12px; justify-content: space-between; width: 100%; flex-wrap: wrap; }
+  .toggles { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; }
+  .toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  .toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+
+  /* Baby note */
+  .baby { background: var(--baby-soft); border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; min-height: 92px; }
+  .baby .who { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--baby); }
+  .baby p { font-size: 16px; line-height: 1.45; transition: opacity .4s ease; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .card section p, .card li { font-size: 15px; }
+  ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .rules li b { font-weight: 600; }
+  .avoid h3 { color: var(--wave); }
+  .alarm { background: var(--crit-soft); border: 1px solid color-mix(in srgb, var(--crit) 40%, transparent); }
+  .alarm h2 { color: var(--crit); }
+  .phones { font-weight: 700; font-size: 18px; user-select: all; }
+  .fine { font-size: 13px; color: var(--muted); }
+
+  @media (max-width: 380px) { .stages small { display: none; } .orb-text .cue { font-size: 22px; } }
+  @media (prefers-reduced-motion: reduce) { .orb { transition: none !important; } .baby p { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Дыхание в родах</h1>
+    <a href="index.html" id="timerLink">Считалка схваток →</a>
+  </header>
+  <p class="lede">Выберите, где вы сейчас, нажмите «Дышать» и повторяйте за кругом: растёт — вдох, сжимается — выдох.</p>
+
+  <nav class="stages" id="stages" aria-label="Период родов"></nav>
+  <div class="modes" id="modes" role="group" aria-label="Техника"></div>
+
+  <section class="pacer" id="pacer">
+    <div>
+      <p class="tname" id="tName"></p>
+      <p class="rhythm num" id="tRhythm"></p>
+    </div>
+    <div class="orb-box">
+      <div class="orb-ring"></div>
+      <div class="orb" id="orb"></div>
+      <div class="orb-text" aria-live="polite">
+        <span class="cue" id="cue">Готовы?</span>
+        <span class="sub" id="sub">Удобно сядьте или обопритесь, плечи вниз</span>
+        <span class="count num" id="count"></span>
+      </div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="controls">
+      <button type="button" class="go" id="go">Дышать</button>
+    </div>
+    <div class="elapsed num">
+      <span id="elapsed">Нажмите, когда начнётся схватка</span>
+      <span id="breaths"></span>
+    </div>
+    <div class="toggles">
+      <label><input type="checkbox" id="optVoice"><span>Подсказывать голосом</span></label>
+      <label><input type="checkbox" id="optVibe" checked><span>Вибрация</span></label>
+    </div>
+  </section>
+
+  <aside class="baby" aria-live="polite">
+    <span class="who">Малышу сейчас</span>
+    <p id="babyNote"></p>
+  </aside>
+
+  <section class="card" id="stageCard"></section>
+
+  <section class="card">
+    <h2>Дышим за двоих: главные правила</h2>
+    <ul class="rules">
+      <li><b>Не задерживайте дыхание на пике схватки.</b> В это время матка пережимает сосуды, и малыш живёт на запасе кислорода. Ваше дыхание этот запас пополняет, задержка его тратит.</li>
+      <li><b>Выдох длиннее вдоха.</b> Длинный выдох успокаивает нервную систему: меньше адреналина, сосуды матки не сжимаются, кровь лучше идёт к плаценте.</li>
+      <li><b>Медленно, а не часто.</b> Если покалывает губы или пальцы, кружится голова, значит, вы дышите слишком часто. Замедлитесь и сделайте несколько вдохов в сложенные ладони.</li>
+      <li><b>После схватки — два глубоких вдоха «для малыша».</b> Сосуды раскрываются, плацента снова наполняется кровью, и этот кислород идёт прямо к нему.</li>
+      <li><b>Низкий звук вместо крика.</b> Гул «ооо» или «ммм» расслабляет горло и челюсть, а вместе с ними тазовое дно. Высокий крик, наоборот, зажимает.</li>
+      <li><b>Потуги на выдохе.</b> Долго тужиться на задержке «на счёт до десяти» стоит, только если об этом попросит акушерка. Она видит сердцебиение малыша.</li>
+      <li><b>Мягкое лицо, мягкие руки.</b> Разожмите кулаки и челюсть, опустите плечи. Напряжение наверху передаётся вниз.</li>
+    </ul>
+  </section>
+
+  <section class="card alarm">
+    <h2>Срочно к врачу</h2>
+    <ul>
+      <li>Отошли зелёные, коричневые воды или воды с кровью, началось кровотечение</li>
+      <li>Живот «каменный» и не расслабляется между схватками</li>
+      <li>Малыш заметно меньше шевелится</li>
+      <li>Сильная головная боль, мушки перед глазами, температура</li>
+    </ul>
+    <p>Скорая: <span class="phones">103</span> или <span class="phones">112</span></p>
+  </section>
+
+  <p class="fine">Это помощник, а не замена врачу и акушерке. В родах главное — их команды: если вас просят дышать или тужиться иначе, делайте как говорят. Настройки сохраняются только в этом браузере.</p>
+</div>
+
+<script>
+(() => {
+  // Step kinds: in — orb grows, out — orb shrinks, puff — short blow, push — directed exhale
+  const REST = {
+    id: "rest", label: "Между схватками", name: "Отдых: два вдоха для малыша",
+    steps: [
+      { k: "in", s: 4, cue: "Вдох", sub: "Глубоко, носом — это для малыша" },
+      { k: "out", s: 6, cue: "Выдох", sub: "Отпустите схватку, плечи вниз" },
+    ],
+    baby: [
+      "Схватка закончилась, и сосуды матки раскрылись. Плацента снова наполняется кровью, так что именно сейчас кислород идёт к малышу быстрее всего.",
+      "Два-три глубоких вдоха сразу после схватки пополняют его запас перед следующей волной.",
+      "Дальше просто отдыхайте. Можно закрыть глаза и даже задремать: малышу полезно, когда вы расслаблены.",
+    ],
+  };
+
+  const STAGES = [
+    {
+      id: "latent", title: "Латентная", hint: "5–10 мин",
+      about: "Схватки каждые 5–10 минут по 30–45 секунд, раскрытие до 5–6 см. Может длиться много часов, поэтому главное — беречь силы.",
+      modes: [{
+        id: "belly", label: "Во время схватки", name: "Медленное дыхание животом",
+        steps: [
+          { k: "in", s: 4, cue: "Вдох", sub: "Носом, живот мягко поднимается" },
+          { k: "out", s: 6, cue: "Выдох", sub: "Ртом, губы мягкие, как будто сдуваете пушинку" },
+        ],
+        baby: [
+          "Во время схватки матка ненадолго пережимает сосуды, и к плаценте приходит меньше крови. Малыш к этому готов: у него есть запас, а ваше ровное дыхание его пополняет.",
+          "Длинный выдох говорит телу «всё в порядке». Меньше адреналина — шире сосуды — больше кислорода малышу.",
+          "Малыш сейчас прижимает подбородок к груди и примеряется ко входу в таз. Спокойный ритм помогает ему.",
+          "Дыхание животом массирует матку изнутри, и малыш чувствует этот мягкий ритм.",
+        ],
+      }],
+      how: "Во время схватки дышите медленно животом: вдох носом на 4, выдох ртом на 6. Между схватками дышите как обычно, двигайтесь, пейте воду, ешьте лёгкое.",
+      avoid: ["Не тратьте силы на частое «собачье» дыхание, оно ещё рано и быстро утомляет", "Не замирайте и не задерживайте дыхание, когда схватка усиливается"],
+      partner: "Дышите вслух в том же ритме, положите тёплую ладонь на поясницу.",
+    },
+    {
+      id: "active", title: "Активная", hint: "3–5 мин",
+      about: "Схватки каждые 3–5 минут по 45–60 секунд, заметно сильнее. Раскрытие от 6 до 10 см.",
+      modes: [{
+        id: "wave", label: "Во время схватки", name: "Дыхание-волна со звуком",
+        steps: [
+          { k: "in", s: 4, cue: "Вдох", sub: "Носом, спокойно" },
+          { k: "out", s: 8, cue: "Выдох «ооо»", sub: "Низкий гул, челюсть мягкая, опускаем малыша вниз" },
+        ],
+        baby: [
+          "На пике схватки хочется замереть. Именно тогда малышу важнее всего, чтобы вы продолжали дышать: задержка на полминуты уменьшает его запас.",
+          "Схватка длится около минуты — это всего 5 таких дыханий. Каждое из них даёт малышу порцию кислорода.",
+          "Низкое «ооо» расслабляет горло, а через него тазовое дно. Шейка раскрывается легче, и малыш опускается быстрее.",
+          "Малыш сейчас поворачивается в тазу. Ему помогают ваше движение и мягкое, расслабленное тело.",
+        ],
+      }],
+      how: "Схватку встречайте вдохом, на выдохе тяните низкий звук. Представьте, что выдох стекает вниз, к малышу. Двигайтесь: покачивания тазом, фитбол, наклоны вперёд.",
+      avoid: ["Не кричите высоким голосом, это зажимает", "Не сжимайте челюсть и кулаки", "Не лежите на спине без необходимости, это пережимает крупные сосуды"],
+      partner: "Считайте дыхания вслух («осталось три»), напоминайте опустить плечи и разжать челюсть.",
+    },
+    {
+      id: "transition", title: "Переходный", hint: "2–3 мин",
+      about: "Схватки каждые 2–3 минуты по 60–90 секунд, почти без перерыва. Самая трудная, но и самая короткая часть. Бывает дрожь, тошнота и мысль «я больше не могу» — это признак, что осталось совсем немного.",
+      modes: [
+        {
+          id: "wave2", label: "Схватка", name: "Короткая волна",
+          steps: [
+            { k: "in", s: 3, cue: "Вдох", sub: "Короткий, носом" },
+            { k: "out", s: 6, cue: "Выдох «ооо»", sub: "Длинно и низко, только эта схватка" },
+          ],
+          baby: [
+            "Малыш уже входит глубоко в таз. Он поворачивается под ваше дыхание.",
+            "Думайте только об одной схватке, не о следующей. Каждый выдох — это шаг малыша к вам.",
+            "Если началась дрожь, это нормально. Выдох длиннее вдоха поможет её переждать.",
+          ],
+        },
+        {
+          id: "nopush", label: "Тянет тужиться, но рано", name: "«Пф-пф-фуу»: не тужиться раньше времени",
+          steps: [
+            { k: "in", s: 1.5, cue: "Вдох", sub: "Небольшой" },
+            { k: "puff", s: 0.8, cue: "Пф", sub: "Коротко выдуть" },
+            { k: "puff", s: 0.8, cue: "Пф", sub: "Ещё раз" },
+            { k: "out", s: 3, cue: "Фуууу", sub: "Длинно задуть свечу" },
+          ],
+          baby: [
+            "Пока шейка не раскрылась полностью, потуги давят головкой малыша на её край. От этого шейка может отечь, и роды затянутся. «Пф-пф» не даёт напрячь пресс.",
+            "На таком дыхании трудно задержать воздух и тужиться, поэтому оно и работает.",
+            "Акушерка скажет, когда можно. До этого момента вы с малышом просто пережидаете волну.",
+            "Если кружится голова, делайте «фуу» длиннее, а вдох спокойнее.",
+          ],
+        },
+      ],
+      how: "Если потуг ещё нет — короткая волна. Если тянет тужиться, а раскрытие неполное, дышите «пф-пф-фуу», будто задуваете свечи. Между схватками — два глубоких вдоха и отдых.",
+      avoid: ["Не тужьтесь, пока акушерка не разрешила", "Не частите: покалывание в губах и пальцах — сигнал замедлиться", "Не терпите молча: звук помогает"],
+      partner: "Смотрите в глаза и дышите «пф-пф-фуу» вместе с ней, лицом к лицу. Прохладное полотенце на лоб.",
+    },
+    {
+      id: "pushing", title: "Потуги", hint: "полное раскрытие",
+      about: "Раскрытие полное, малыш идёт по родовым путям. На каждую схватку обычно приходится 3–4 потуги. Первые роды: от 30 минут до 2 часов.",
+      modes: [{
+        id: "push", label: "Во время схватки", name: "Потуга на выдохе",
+        steps: [
+          { k: "in", s: 3, cue: "Вдох", sub: "Полный, носом" },
+          { k: "push", s: 6, cue: "Вниз «ммм»", sub: "Выдыхайте и направляйте малыша вниз" },
+          { k: "in", s: 2, cue: "Вдох", sub: "Быстро добрать воздух" },
+          { k: "push", s: 6, cue: "Вниз «ааа»", sub: "Подбородок к груди, лицо мягкое" },
+          { k: "in", s: 2, cue: "Вдох", sub: "Это кислород малышу" },
+          { k: "push", s: 6, cue: "Вниз", sub: "Ещё одна, вы молодец" },
+        ],
+        baby: [
+          "Потуга на выдохе, по 5–6 секунд, бережнее для малыша, чем долгая задержка дыхания: кислород не успевает упасть.",
+          "Короткий вдох между потугами — это воздух, который почти сразу доходит до малыша.",
+          "Малыш сейчас делает свою работу: поворачивает и сгибает головку, чтобы пройти мягче.",
+          "Если акушерка просит тужиться иначе — слушайте её. Она следит за сердцебиением малыша.",
+        ],
+      }],
+      how: "Тужьтесь, когда есть позыв и акушерка разрешила. Вдох, потом на выдохе направляйте силу вниз, как будто выдох выталкивает малыша, 5–6 секунд. Быстро вдохните и повторите. После схватки два медленных вдоха и полный отдых.",
+      avoid: ["Не задерживайте дыхание по 10 секунд без просьбы акушерки", "Не тужьтесь «в лицо»: покраснение и напряжение щёк не помогают малышу", "Не тужьтесь между схватками — отдыхайте"],
+      partner: "Помогайте найти удобную позу (на боку, на корточках с опорой) и напоминайте дышать между потугами.",
+    },
+    {
+      id: "crowning", title: "Головка", hint: "рождение",
+      about: "Головка прорезывается. Сейчас важно не тужиться изо всех сил, а дать ей родиться медленно — так бережнее для малыша и промежности.",
+      modes: [{
+        id: "pant", label: "Когда говорят «не тужься»", name: "Лёгкое дыхание «ха-ха»",
+        steps: [
+          { k: "in", s: 1, cue: "Вдох", sub: "Совсем лёгкий" },
+          { k: "puff", s: 1, cue: "Ха", sub: "Выдох ртом, открыто" },
+        ],
+        baby: [
+          "Головка рождается медленно, и малыш мягко привыкает к новому давлению. Лёгкое «ха-ха» не даёт тужиться в полную силу.",
+          "Ещё чуть-чуть. Следующий вдох малыш сделает уже сам.",
+          "Малыш сейчас рядом, как никогда. Протяните руку и потрогайте его головку, если хочется.",
+          "После рождения — кожа к коже. Ваше спокойное дыхание помогает малышу настроить своё.",
+        ],
+      }],
+      how: "Когда акушерка говорит «не тужься», дышите часто и легко, ртом: «ха-ха-ха», тело мягкое. Когда говорит «чуть-чуть потужься» — короткий мягкий выдох вниз.",
+      avoid: ["Не тужьтесь резко на прорезывании головки", "Не зажимайтесь и не отползайте вверх"],
+      partner: "Повторяйте за акушеркой её команды спокойным голосом, держите за руку.",
+    },
+  ];
+
+  const KEY = "breathing-helper-v1";
+  const $ = (id) => document.getElementById(id);
+  let prefs = { stage: "latent", mode: null, voice: false, vibe: true };
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {} };
+
+  const stageOf = () => STAGES.find((s) => s.id === prefs.stage) || STAGES[0];
+  const modesOf = (st) => st.modes.concat(REST);
+  const modeOf = () => { const list = modesOf(stageOf()); return list.find((m) => m.id === prefs.mode) || list[0]; };
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const colorOf = (k) => ({ in: "var(--inhale)", out: "var(--accent)", puff: "var(--accent)", push: "var(--wave)" })[k];
+  const haptic = (kind) => {
+    if (window.App) return window.App.haptic(kind);
+    try { navigator.vibrate && navigator.vibrate(kind === "double" ? [20, 60, 20] : kind === "light" ? 15 : 30); } catch (e) {}
+  };
+  const guardClose = (on) => { if (window.App) window.App.guardClose(on); };
+  const fmt = (n) => (Number.isInteger(n) ? n : n.toFixed(1).replace(".", ","));
+
+  // ---------- Rendering ----------
+  function renderStages() {
+    const idx = STAGES.findIndex((s) => s.id === prefs.stage);
+    $("stages").innerHTML = STAGES.map((s, i) =>
+      `<button type="button" data-id="${s.id}" aria-pressed="${s.id === prefs.stage}" class="${i < idx ? "past" : ""}">${s.title}<small>${s.hint}</small></button>`
+    ).join("");
+  }
+  function renderModes() {
+    const cur = modeOf();
+    $("modes").innerHTML = modesOf(stageOf()).map((m) =>
+      `<button type="button" data-id="${m.id}" aria-pressed="${m.id === cur.id}">${m.label}</button>`
+    ).join("");
+    $("tName").textContent = cur.name;
+    $("tRhythm").textContent = cur.steps.map((st) => (st.k === "in" ? "вдох " : st.k === "push" ? "потуга " : "выдох ") + fmt(st.s)).join(" · ") + " с";
+  }
+  function renderCard() {
+    const s = stageOf();
+    $("stageCard").innerHTML = `
+      <h2>${s.title} ${s.id === "pushing" || s.id === "crowning" ? "период" : "фаза"}</h2>
+      <section><h3>Что происходит</h3><p>${s.about}</p></section>
+      <section><h3>Как дышать</h3><p>${s.how}</p></section>
+      <section class="avoid"><h3>Чего избегать</h3><ul>${s.avoid.map((a) => `<li>${a}</li>`).join("")}</ul></section>
+      <section><h3>Партнёру</h3><p>${s.partner}</p></section>`;
+  }
+  let noteIdx = 0;
+  function showNote() {
+    const notes = modeOf().baby;
+    const el = $("babyNote");
+    el.style.opacity = 0;
+    setTimeout(() => { el.textContent = notes[noteIdx % notes.length]; el.style.opacity = 1; }, reduce ? 0 : 250);
+  }
+  function renderAll() { renderStages(); renderModes(); renderCard(); noteIdx = 0; showNote(); }
+
+  // ---------- Pacer engine ----------
+  let running = false, stepIdx = 0, stepEnd = 0, startedAt = 0, cycles = 0, timer = null, raf = null;
+
+  function setOrb(k, s) {
+    const orb = $("orb");
+    const c = colorOf(k);
+    orb.style.setProperty("--c", c);
+    $("barFill").parentElement.style.setProperty("--c", c);
+    const cur = parseFloat(orb.dataset.scale || ".55");
+    let target = cur;
+    if (k === "in") target = 1;
+    else if (k === "out") target = .55;
+    else if (k === "push") target = .62;
+    else if (k === "puff") target = Math.max(.55, cur - .12);
+    orb.style.transitionDuration = (k === "puff" ? Math.min(s, .5) : s) + "s";
+    orb.style.transform = `scale(${target})`;
+    orb.dataset.scale = target;
+  }
+
+  function speak(text) {
+    if (!prefs.voice || !("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/[«»]/g, ""));
+      u.lang = "ru-RU"; u.rate = .9; u.pitch = .9;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function runStep() {
+    const m = modeOf();
+    if (stepIdx >= m.steps.length) {
+      stepIdx = 0; cycles++;
+      $("breaths").textContent = "Циклов: " + cycles;
+      if (cycles % 2 === 0) { noteIdx++; showNote(); }
+    }
+    const st = m.steps[stepIdx];
+    $("cue").textContent = st.cue;
+    $("sub").textContent = st.sub;
+    setOrb(st.k, st.s);
+    if (st.s >= 1.5) speak(st.cue);
+    if (prefs.vibe) haptic(st.k === "in" ? "soft" : st.k === "push" ? "double" : "light");
+    const dur = st.s * 1000;
+    stepEnd = performance.now() + dur;
+    const fill = $("barFill");
+    fill.style.transition = "none"; fill.style.width = "0";
+    void fill.offsetWidth;
+    fill.style.transition = `width ${st.s}s linear`; fill.style.width = "100%";
+    stepIdx++;
+    timer = setTimeout(runStep, dur);
+  }
+
+  function tick() {
+    if (!running) return;
+    const left = Math.max(0, stepEnd - performance.now());
+    $("count").textContent = left >= 1000 ? Math.ceil(left / 1000) : "";
+    const sec = Math.floor((Date.now() - startedAt) / 1000);
+    $("elapsed").textContent = (modeOf().id === "rest" ? "Отдых " : "Схватка ") + Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+    raf = requestAnimationFrame(tick);
+  }
+
+  function start() {
+    running = true; stepIdx = 0; cycles = 0; startedAt = Date.now();
+    $("go").textContent = "Схватка прошла";
+    $("go").classList.add("live");
+    $("breaths").textContent = "";
+    keepAwake(); guardClose(true);
+    runStep(); tick();
+  }
+  function stop(silent) {
+    running = false; guardClose(false);
+    clearTimeout(timer); cancelAnimationFrame(raf);
+    try { speechSynthesis.cancel(); } catch (e) {}
+    $("go").textContent = "Дышать";
+    $("go").classList.remove("live");
+    const orb = $("orb");
+    orb.style.transitionDuration = "1.2s"; orb.style.transform = "scale(.55)"; orb.dataset.scale = ".55";
+    orb.style.setProperty("--c", "var(--accent)");
+    $("barFill").style.transition = "none"; $("barFill").style.width = "0";
+    $("count").textContent = "";
+    $("cue").textContent = "Готовы?";
+    $("sub").textContent = "Удобно сядьте или обопритесь, плечи вниз";
+    if (!silent) $("elapsed").textContent = "Нажмите, когда начнётся схватка";
+  }
+
+  // After a contraction ends, offer the recovery breaths right away
+  $("go").addEventListener("click", () => {
+    if (!running) { start(); return; }
+    const wasRest = modeOf().id === "rest";
+    stop(true);
+    if (!wasRest) {
+      prefs.mode = "rest"; save(); renderModes(); noteIdx = 0; showNote();
+      start();
+    } else {
+      prefs.mode = null; save(); renderModes(); noteIdx = 0; showNote();
+      $("elapsed").textContent = "Отдыхайте. Нажмите, когда начнётся схватка";
+    }
+  });
+
+  $("stages").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    stop(); prefs.stage = b.dataset.id; prefs.mode = null; save(); renderAll();
+  });
+  $("modes").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const was = running; stop(); prefs.mode = b.dataset.id; save();
+    renderModes(); noteIdx = 0; showNote();
+    if (was) start();
+  });
+
+  $("optVoice").checked = !!prefs.voice;
+  $("optVibe").checked = !!prefs.vibe;
+  $("optVoice").addEventListener("change", (e) => { prefs.voice = e.target.checked; save(); if (prefs.voice) speak("Вдох"); });
+  $("optVibe").addEventListener("change", (e) => { prefs.vibe = e.target.checked; save(); });
+
+  // ---------- Keep the screen on ----------
+  let lock = null;
+  async function keepAwake() {
+    try {
+      if ("wakeLock" in navigator && !lock && document.visibilityState === "visible") {
+        lock = await navigator.wakeLock.request("screen");
+        lock.addEventListener("release", () => { lock = null; });
+      }
+    } catch (e) { lock = null; }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && running) keepAwake(); });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
