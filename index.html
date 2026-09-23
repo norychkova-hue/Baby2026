@@ -1,0 +1,356 @@
+<title>Счётчик шевелений</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --ground: #F5F2F6;
+  --surface: #FFFFFF;
+  --ink: #2A2130;
+  --muted: #6E6475;
+  --line: #E4DDE8;
+  --accent: #7A3B69;
+  --accent-soft: #F1E3EE;
+  --on-accent: #FFFFFF;
+  --ok: #2F7A57;
+  --ok-soft: #E2F2E9;
+  --warn: #A5620F;
+  --warn-soft: #FBEEDB;
+  --bad: #B3261E;
+  --bad-soft: #FBE4E2;
+  --display: "Comfortaa", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #1B161E;
+    --surface: #251F29;
+    --ink: #F1EAF3;
+    --muted: #A99FAF;
+    --line: #3A3140;
+    --accent: #D98CC4;
+    --accent-soft: #3A2536;
+    --on-accent: #1B161E;
+    --ok: #7FD1A6;
+    --ok-soft: #1E3328;
+    --warn: #F0B566;
+    --warn-soft: #3A2C18;
+    --bad: #FF9B92;
+    --bad-soft: #3D1F1D;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #1B161E;
+  --surface: #251F29;
+  --ink: #F1EAF3;
+  --muted: #A99FAF;
+  --line: #3A3140;
+  --accent: #D98CC4;
+  --accent-soft: #3A2536;
+  --on-accent: #1B161E;
+  --ok: #7FD1A6;
+  --ok-soft: #1E3328;
+  --warn: #F0B566;
+  --warn-soft: #3A2C18;
+  --bad: #FF9B92;
+  --bad-soft: #3D1F1D;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 16px/1.5 var(--body);
+  padding-inline: 16px;
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+h1 { font: 700 1.5rem/1.2 var(--display); margin: 0; text-wrap: balance; }
+.week { font-size: .85rem; color: var(--muted); letter-spacing: .02em; }
+h2 { font: 700 1.05rem/1.3 var(--display); margin: 0; }
+
+.counter {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+}
+.status { width: 100%; display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.status b { color: var(--ink); font-weight: 600; }
+
+.tap {
+  width: min(240px, 70vw); aspect-ratio: 1; max-width: 100%;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: var(--display);
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  box-shadow: 0 0 0 10px var(--accent-soft);
+  transition: transform .08s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.tap:active { transform: scale(.96); }
+.tap:focus-visible { outline: 3px solid var(--ink); outline-offset: 14px; }
+.tap .n { font-size: 4.5rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.tap .of { font-size: .95rem; opacity: .85; font-family: var(--body); }
+.tap .cta { font-size: 1.15rem; font-weight: 700; padding-inline: 24px; text-align: center; }
+
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; max-width: 280px; }
+.dots i { aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--line); }
+.dots i.on { background: var(--accent); border-color: var(--accent); }
+
+.verdict { width: 100%; border-radius: 12px; padding: 10px 14px; font-size: .92rem; }
+.verdict.ok { background: var(--ok-soft); color: var(--ok); }
+.verdict.warn { background: var(--warn-soft); color: var(--warn); }
+.verdict.bad { background: var(--bad-soft); color: var(--bad); font-weight: 600; }
+
+.row { display: flex; gap: 10px; width: 100%; flex-wrap: wrap; }
+.btn {
+  flex: 1 1 0; min-width: 120px;
+  font: 600 .95rem var(--body);
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  cursor: pointer;
+}
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn.danger { color: var(--bad); }
+.btn[disabled] { opacity: .45; cursor: default; }
+
+.hint { font-size: .88rem; color: var(--muted); margin: 0; }
+
+section.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+
+.hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.hist li { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.hist li:first-child { border-top: 0; }
+.hist .when { font-size: .92rem; }
+.hist .when small { display: block; color: var(--muted); font-size: .8rem; }
+.pill { font-size: .78rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.del { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px 6px; border-radius: 6px; }
+.del:focus-visible { outline: 2px solid var(--accent); }
+.empty { color: var(--muted); font-size: .9rem; margin: 0; }
+
+.alarm { border-color: var(--bad); }
+.alarm h2 { color: var(--bad); }
+.alarm ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: .93rem; }
+.note { font-size: .85rem; color: var(--muted); }
+.sync { font-size: .78rem; color: var(--muted); text-align: center; }
+
+.confirm { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .9rem; }
+@media (prefers-reduced-motion: reduce) { .tap { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Счётчик шевелений</h1>
+    <span class="week" id="week">37 недель · третьи роды</span>
+  </header>
+
+  <div class="counter">
+    <div class="status">
+      <span>Начало: <b id="startTxt">—</b></span>
+      <span>Прошло: <b id="elapsed">0:00</b></span>
+    </div>
+
+    <button class="tap" id="tap" type="button" aria-live="polite">
+      <span class="cta" id="cta">Начать подсчёт</span>
+      <span class="n" id="num" hidden>0</span>
+      <span class="of" id="of" hidden>из 10</span>
+    </button>
+
+    <div class="dots" id="dots" aria-hidden="true"></div>
+
+    <div class="verdict ok" id="verdict" hidden></div>
+
+    <div class="row" id="controls" hidden>
+      <button class="btn" id="undo" type="button">Отменить последнее</button>
+      <button class="btn primary" id="finish" type="button">Завершить</button>
+    </div>
+    <div class="confirm" id="cancelRow" hidden>
+      <button class="btn danger" id="cancel" type="button">Сбросить без сохранения</button>
+    </div>
+
+    <p class="hint">Лягте на левый бок, в спокойное время (часто после еды или вечером). Нажимайте на каждое шевеление: толчок, поворот, пинок. Серия движений подряд — одно нажатие. Норма — 10 шевелений за 2 часа, обычно гораздо быстрее.</p>
+  </div>
+
+  <section class="card alarm">
+    <h2>Когда звонить врачу или ехать в роддом</h2>
+    <ul>
+      <li>Меньше 10 шевелений за 2 часа, или малыш двигается заметно слабее/реже, чем обычно — <b>не ждите до утра</b>, езжайте на КТГ.</li>
+      <li>Шевелений нет совсем, или вдруг очень бурные, а потом затишье.</li>
+      <li>Отошли воды (даже подтекают), кровянистые выделения.</li>
+      <li>Регулярные схватки. Для третьих родов выезжайте раньше: при схватках каждые 7–10 минут, не дожидаясь 5 — повторные роды часто идут быстро, а вторые у вас были на 3 недели раньше срока.</li>
+      <li>Сильная головная боль, мушки перед глазами, отёки, боль в животе, которая не проходит.</li>
+    </ul>
+    <p class="note">Счётчик — помощник, а не диагноз. Если что-то тревожит, доверяйте ощущениям и звоните: 103 / 112 или в свой роддом.</p>
+  </section>
+
+  <section class="card">
+    <h2>История</h2>
+    <ul class="hist" id="hist"></ul>
+    <p class="empty" id="empty">Пока нет записей. Завершённые подсчёты появятся здесь.</p>
+  </section>
+
+  <p class="sync" id="sync">Сохраняется в этом браузере</p>
+</div>
+
+<script>
+(() => {
+  const GOAL = 10, LIMIT_MS = 2 * 60 * 60 * 1000, LS = "kicks.v1";
+  const $ = id => document.getElementById(id);
+  let sessions = [];       // {id, start, taps:[ms], end|null}
+  let db = null;
+
+  // ---------- storage ----------
+  function lsLoad() { try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch { return []; } }
+  function lsSave() { try { localStorage.setItem(LS, JSON.stringify(sessions)); } catch {} }
+  function save(s) {
+    lsSave();
+    if (db) db.collection("sessions").doc(s.id).set({ start: s.start, taps: s.taps, end: s.end ?? null })
+      .catch(() => { $("sync").textContent = "Нет связи — сохранено только в этом браузере"; });
+  }
+  function remove(s) {
+    sessions = sessions.filter(x => x.id !== s.id);
+    lsSave();
+    if (db) db.collection("sessions").doc(s.id).delete().catch(() => {});
+  }
+
+  // ---------- helpers ----------
+  const active = () => sessions.find(s => !s.end);
+  const fmtTime = t => new Date(t).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  const fmtDate = t => new Date(t).toLocaleDateString("ru-RU", { day: "numeric", month: "long", weekday: "short" });
+  function fmtDur(ms) {
+    const m = Math.floor(ms / 60000), h = Math.floor(m / 60);
+    return h ? `${h} ч ${String(m % 60).padStart(2, "0")} мин` : `${m} мин`;
+  }
+  function clock(ms) {
+    const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(ss).padStart(2, "0");
+  }
+  function grade(s) {
+    const n = s.taps.length;
+    const to10 = n >= GOAL ? s.taps[GOAL - 1] - s.start : null;
+    if (to10 !== null && to10 <= LIMIT_MS) return { cls: "ok", label: `10 за ${fmtDur(to10)}` };
+    if (to10 !== null) return { cls: "bad", label: `10 за ${fmtDur(to10)}` };
+    const dur = (s.end || Date.now()) - s.start;
+    if (dur >= LIMIT_MS) return { cls: "bad", label: `${n} за ${fmtDur(dur)}` };
+    return { cls: "warn", label: `${n} за ${fmtDur(dur)}` };
+  }
+
+  // ---------- render ----------
+  const dotsEl = $("dots");
+  for (let i = 0; i < GOAL; i++) dotsEl.appendChild(document.createElement("i"));
+
+  function renderCounter() {
+    const s = active();
+    const n = s ? s.taps.length : 0;
+    $("cta").hidden = !!s; $("num").hidden = !s; $("of").hidden = !s;
+    $("num").textContent = n;
+    $("of").textContent = n >= GOAL ? "шевелений" : "из 10";
+    $("tap").setAttribute("aria-label", s ? `Отметить шевеление. Сейчас ${n}` : "Начать подсчёт");
+    [...dotsEl.children].forEach((d, i) => d.classList.toggle("on", i < n));
+    $("controls").hidden = !s; $("cancelRow").hidden = !s;
+    $("undo").disabled = !s || n === 0;
+    $("startTxt").textContent = s ? fmtTime(s.start) : "—";
+    tick();
+  }
+  function tick() {
+    const s = active(), v = $("verdict");
+    if (!s) { $("elapsed").textContent = "0:00"; v.hidden = true; return; }
+    const dur = Date.now() - s.start, n = s.taps.length;
+    $("elapsed").textContent = clock(dur);
+    v.hidden = false;
+    if (n >= GOAL) {
+      const to10 = s.taps[GOAL - 1] - s.start;
+      if (to10 <= LIMIT_MS) { v.className = "verdict ok"; v.textContent = `Отлично: 10 шевелений за ${fmtDur(to10)}. Можно завершить.`; }
+      else { v.className = "verdict bad"; v.textContent = `10 шевелений набралось только за ${fmtDur(to10)} — это дольше 2 часов. Позвоните в роддом или приезжайте на КТГ.`; }
+    } else if (dur >= LIMIT_MS) {
+      v.className = "verdict bad";
+      v.textContent = `Прошло 2 часа, а шевелений ${n} из 10. Не ждите — звоните в роддом или езжайте на КТГ сейчас.`;
+    } else if (dur >= 60 * 60 * 1000) {
+      v.className = "verdict warn";
+      v.textContent = `Прошёл час, ${n} из 10. Попробуйте поесть, выпить сладкого, полежать на левом боку и продолжайте считать.`;
+    } else {
+      v.className = "verdict ok";
+      v.textContent = n ? `Идёт подсчёт. Осталось ${GOAL - n}.` : "Отмечайте каждое шевеление.";
+    }
+  }
+  function renderHist() {
+    const done = sessions.filter(s => s.end).sort((a, b) => b.start - a.start).slice(0, 40);
+    const ul = $("hist"); ul.textContent = "";
+    $("empty").hidden = done.length > 0;
+    for (const s of done) {
+      const g = grade(s), li = document.createElement("li");
+      const w = document.createElement("div"); w.className = "when";
+      w.textContent = fmtDate(s.start);
+      const sm = document.createElement("small"); sm.textContent = `${fmtTime(s.start)} – ${fmtTime(s.end)}`; w.appendChild(sm);
+      const p = document.createElement("span"); p.className = "pill " + g.cls; p.textContent = g.label;
+      const d = document.createElement("button"); d.className = "del"; d.type = "button"; d.textContent = "×";
+      d.setAttribute("aria-label", "Удалить запись");
+      d.onclick = () => {
+        if (d.dataset.armed) { remove(s); renderHist(); }
+        else { d.dataset.armed = "1"; d.textContent = "Удалить?"; d.style.fontSize = ".8rem"; setTimeout(() => { if (d.isConnected) { delete d.dataset.armed; d.textContent = "×"; d.style.fontSize = ""; } }, 3000); }
+      };
+      li.append(w, p, d); ul.appendChild(li);
+    }
+  }
+  const render = () => { renderCounter(); renderHist(); };
+
+  // ---------- actions ----------
+  $("tap").onclick = () => {
+    let s = active();
+    if (!s) {
+      s = { id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), start: Date.now(), taps: [], end: null };
+      sessions.push(s);
+    } else {
+      s.taps.push(Date.now());
+      if (navigator.vibrate) try { navigator.vibrate(30); } catch {}
+    }
+    save(s); renderCounter();
+  };
+  $("undo").onclick = () => { const s = active(); if (s && s.taps.length) { s.taps.pop(); save(s); renderCounter(); } };
+  $("finish").onclick = () => { const s = active(); if (!s) return; s.end = Date.now(); save(s); render(); };
+  $("cancel").onclick = function () {
+    if (this.dataset.armed) { const s = active(); if (s) remove(s); delete this.dataset.armed; this.textContent = "Сбросить без сохранения"; render(); return; }
+    this.dataset.armed = "1"; this.textContent = "Точно сбросить? Нажмите ещё раз";
+    setTimeout(() => { delete this.dataset.armed; this.textContent = "Сбросить без сохранения"; }, 4000);
+  };
+
+  // ---------- boot ----------
+  sessions = lsLoad();
+  render();
+  setInterval(tick, 1000);
+
+  (async () => {
+    try {
+      db = window.claude?.use ? await window.claude.use("db") : null;
+      if (!db) return;
+      const snap = await db.collection("sessions").get();
+      const remote = new Map();
+      snap.docs.forEach(d => { const x = d.data(); if (x) remote.set(d.id, { id: d.id, start: x.start, taps: [...(x.taps || [])], end: x.end ?? null }); });
+      // merge: keep whichever copy has more info
+      for (const s of sessions) {
+        const r = remote.get(s.id);
+        if (!r || s.taps.length > r.taps.length || (s.end && !r.end)) { remote.set(s.id, s); save(s); }
+      }
+      sessions = [...remote.values()];
+      lsSave();
+      $("sync").textContent = "Сохраняется в вашем аккаунте — видно с телефона и компьютера";
+      render();
+    } catch {
+      db = null;
+    }
+  })();
+})();
+</script>
