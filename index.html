@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5A3FC8">
+<style>html,body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>Считалка схваток</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+  :root {
+    --bg: #F2F0F5;
+    --surface: #FFFFFF;
+    --surface-2: #E9E5F0;
+    --ink: #1E1B2E;
+    --muted: #686379;
+    --line: #DAD5E3;
+    --accent: #5A3FC8;
+    --accent-ink: #FFFFFF;
+    --wave: #E0552F;
+    --wave-soft: #FBE3DA;
+    --ok: #2B7A4B;
+    --ok-soft: #DDF0E4;
+    --warn: #9A6500;
+    --warn-soft: #FBEFD2;
+    --crit: #B8232A;
+    --crit-soft: #F9DDDE;
+    --display: "Unbounded", "Onest", system-ui, sans-serif;
+    --body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #13111D;
+      --surface: #1D1A2B;
+      --surface-2: #27233A;
+      --ink: #EEEAF7;
+      --muted: #A49EB8;
+      --line: #342F4A;
+      --accent: #A58FFF;
+      --accent-ink: #15121F;
+      --wave: #FF7B56;
+      --wave-soft: #3A2220;
+      --ok: #6FD39A;
+      --ok-soft: #1B3326;
+      --warn: #F2C14E;
+      --warn-soft: #3A2F14;
+      --crit: #FF7F84;
+      --crit-soft: #3E1D22;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #13111D;
+    --surface: #1D1A2B;
+    --surface-2: #27233A;
+    --ink: #EEEAF7;
+    --muted: #A49EB8;
+    --line: #342F4A;
+    --accent: #A58FFF;
+    --accent-ink: #15121F;
+    --wave: #FF7B56;
+    --wave-soft: #3A2220;
+    --ok: #6FD39A;
+    --ok-soft: #1B3326;
+    --warn: #F2C14E;
+    --warn-soft: #3A2F14;
+    --crit: #FF7F84;
+    --crit-soft: #3E1D22;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 20px 48px;
+  }
+  .wrap { max-width: 540px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 10px; }
+  p { margin: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .parity { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; }
+  .parity input { position: absolute; opacity: 0; pointer-events: none; }
+  .parity label { padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .parity input:checked + label { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / .12); }
+
+  .demo-banner { background: var(--warn-soft); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 14px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .demo-banner button { background: none; border: 0; color: inherit; font-weight: 600; text-decoration: underline; padding: 0; }
+
+  /* Verdict */
+  .verdict { border-radius: 18px; padding: 18px 18px 16px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  .verdict .tag { align-self: flex-start; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+  .verdict .head { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.25; text-wrap: balance; }
+  .verdict .why { color: var(--muted); font-size: 15px; }
+  .verdict[data-level="home"] .tag { background: var(--ok-soft); color: var(--ok); }
+  .verdict[data-level="soon"] { border-color: var(--warn); }
+  .verdict[data-level="soon"] .tag { background: var(--warn-soft); color: var(--warn); }
+  .verdict[data-level="go"], .verdict[data-level="now"] { border: 2px solid var(--crit); background: var(--crit-soft); }
+  .verdict[data-level="go"] .tag, .verdict[data-level="now"] .tag { background: var(--crit); color: var(--surface); }
+
+  /* Phase track — a real sequence, so steps are numbered by order */
+  .track { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 10px; }
+  .track div { font-size: 12px; line-height: 1.25; color: var(--muted); padding-top: 8px; border-top: 4px solid var(--line); }
+  .track div.on { color: var(--ink); font-weight: 600; border-top-color: var(--accent); }
+  .track div.past { border-top-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+
+  /* Big button */
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-block: 8px; }
+  .clock { text-align: center; min-height: 64px; }
+  .clock .label { font-size: 14px; color: var(--muted); }
+  .clock .time { font-family: var(--display); font-weight: 500; font-size: 40px; line-height: 1.1; }
+  .big {
+    width: min(240px, 70vw); aspect-ratio: 1; max-width: 100%;
+    border-radius: 50%; border: 0;
+    background: var(--accent); color: var(--accent-ink);
+    font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.25;
+    padding: 24px; text-wrap: balance;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 35%, transparent);
+    transition: transform .12s ease, background .2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .big:active { transform: scale(.97); }
+  .big.live { background: var(--wave); color: #fff; box-shadow: 0 0 0 0 color-mix(in srgb, var(--wave) 55%, transparent); animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--wave) 45%, transparent); }
+    50% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--wave) 0%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce) { .big.live { animation: none; } .big { transition: none; } }
+  .hint { font-size: 14px; color: var(--muted); text-align: center; max-width: 34ch; }
+
+  /* Stats */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .stats div { background: var(--surface); padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .stats b { font-size: 22px; font-weight: 700; }
+  .stats span { font-size: 12px; color: var(--muted); line-height: 1.3; }
+
+  /* Log */
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--line); }
+  td { padding: 9px 4px; border-bottom: 1px solid var(--line); }
+  td:last-child, th:last-child { text-align: right; width: 36px; }
+  .del { background: none; border: 0; color: var(--muted); font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 8px; }
+  .del:hover { background: var(--surface-2); color: var(--crit); }
+  .empty { color: var(--muted); font-size: 15px; padding: 12px 0; }
+  .row-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; align-items: center; }
+  .ghost { background: var(--surface-2); border: 0; border-radius: 10px; padding: 9px 14px; font-size: 14px; font-weight: 500; }
+  .ghost.danger { color: var(--crit); }
+  .confirm { font-size: 14px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* Info */
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .alarm { background: var(--crit-soft); border: 1px solid color-mix(in srgb, var(--crit) 40%, transparent); }
+  .alarm h2 { color: var(--crit); }
+  ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .phases { display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  .phases dt { font-weight: 600; }
+  .phases dd { margin: 0; color: var(--muted); }
+  .phones { font-weight: 700; font-size: 18px; user-select: all; }
+  .fine { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Считалка схваток</h1>
+    <div class="parity" role="radiogroup" aria-label="Какие роды">
+      <input type="radio" name="parity" id="p-first" value="first" checked><label for="p-first">Первые роды</label>
+      <input type="radio" name="parity" id="p-repeat" value="repeat"><label for="p-repeat">Повторные</label>
+    </div>
+  </header>
+
+  <div class="demo-banner" id="demoBanner" hidden>
+    <span>Это пример данных, не ваши схватки.</span>
+    <button type="button" id="demoClear">Очистить и начать</button>
+  </div>
+
+  <section class="verdict" id="verdict" data-level="none" aria-live="polite">
+    <span class="tag" id="vTag">Ждём данных</span>
+    <p class="head" id="vHead">Отметьте несколько схваток подряд</p>
+    <p class="why" id="vWhy">Нажмите кнопку, когда схватка начнётся, и ещё раз — когда закончится. Оценка появится после 3–4 схваток.</p>
+    <div class="track" id="track" aria-label="Период родов">
+      <div data-p="prep">Подготови&shy;тельные</div>
+      <div data-p="latent">Латентная фаза</div>
+      <div data-p="active">Активная фаза</div>
+      <div data-p="transition">Переходный период</div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="clock" aria-live="off">
+      <div class="label" id="clockLabel">Схваток пока нет</div>
+      <div class="time num" id="clockTime">—</div>
+    </div>
+    <button type="button" class="big" id="big">Началась схватка</button>
+    <p class="hint" id="hint">Экран не будет гаснуть, пока страница открыта (если телефон разрешит).</p>
+  </section>
+
+  <section>
+    <h2>За последний час</h2>
+    <div class="stats">
+      <div><b class="num" id="sCount">0</b><span>схваток</span></div>
+      <div><b class="num" id="sDur">—</b><span>средняя длительность</span></div>
+      <div><b class="num" id="sInt">—</b><span>интервал между началами</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Журнал</h2>
+    <div id="log"></div>
+    <div class="row-actions">
+      <button type="button" class="ghost" id="demoBtn">Показать пример</button>
+      <span id="clearWrap"><button type="button" class="ghost danger" id="clearBtn">Очистить всё</button></span>
+    </div>
+  </section>
+
+  <section class="card alarm">
+    <h2>Ехать сразу, не считая схватки</h2>
+    <ul>
+      <li>Отошли воды — особенно если они зелёные, коричневые или с кровью</li>
+      <li>Кровянистые выделения больше, чем мазня, или кровотечение</li>
+      <li>Сильная постоянная боль в животе, живот «каменный» и не расслабляется</li>
+      <li>Малыш стал заметно меньше шевелиться</li>
+      <li>Сильная головная боль, мушки перед глазами, отёки, температура</li>
+      <li>Хочется тужиться</li>
+    </ul>
+    <p style="margin-top:12px">Скорая: <span class="phones">103</span> или <span class="phones">112</span></p>
+  </section>
+
+  <section class="card">
+    <h2>Когда ехать в роддом</h2>
+    <dl class="phases">
+      <dt>Первые роды — правило 5-1-1</dt>
+      <dd>Схватки каждые 5 минут, каждая длится около 1 минуты, и так уже 1 час.</dd>
+      <dt>Повторные роды</dt>
+      <dd>Роды обычно идут быстрее, поэтому ехать раньше: когда схватки регулярные, каждые 7–10 минут.</dd>
+      <dt>Если врач сказал иначе</dt>
+      <dd>Следуйте его рекомендациям — особенно при кесаревом в прошлом, двойне, тазовом предлежании или если дорога долгая.</dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Периоды родов</h2>
+    <dl class="phases">
+      <dt>Подготовительные (тренировочные) схватки</dt>
+      <dd>Нерегулярные, реже чем раз в 10 минут, не усиливаются и часто стихают после душа или отдыха.</dd>
+      <dt>Латентная фаза</dt>
+      <dd>Каждые 5–10 минут по 30–45 секунд. Шейка раскрывается до 5–6 см. Может длиться много часов.</dd>
+      <dt>Активная фаза</dt>
+      <dd>Каждые 3–5 минут по 45–60 секунд, схватки заметно сильнее. Раскрытие 6–10 см.</dd>
+      <dt>Переходный период</dt>
+      <dd>Каждые 2–3 минуты по 60–90 секунд, почти без перерыва. Самая интенсивная часть перед потугами.</dd>
+    </dl>
+  </section>
+
+  <p class="fine">Это помощник для подсчёта, а не медицинский диагноз. Цифры ориентировочные — если сомневаетесь, звоните своему врачу или в роддом. Данные хранятся только в этом браузере на этом устройстве.</p>
+</div>
+
+<script>
+(() => {
+  const KEY = "contraction-timer-v1";
+  const MIN = 60000;
+  let state = { list: [], cur: null, parity: "first", demo: false };
+
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) state = Object.assign(state, JSON.parse(raw));
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const $ = (id) => document.getElementById(id);
+
+  const mmss = (ms) => {
+    const s = Math.max(0, Math.round(ms / 1000));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(sec).padStart(2, "0");
+  };
+  const human = (ms) => {
+    const s = Math.round(ms / 1000);
+    if (s < 60) return s + " с";
+    const m = Math.floor(s / 60), r = s % 60;
+    return r ? m + " мин " + r + " с" : m + " мин";
+  };
+  const clockTime = (ts) => new Date(ts).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+
+  // ---------- Analysis ----------
+  function analyse(now) {
+    const recent = state.list.filter((c) => c.s >= now - 60 * MIN);
+    const n = recent.length;
+    const out = { n, avgDur: null, avgInt: null, cv: null, span: 0 };
+    if (n) out.avgDur = recent.reduce((a, c) => a + (c.e - c.s), 0) / n;
+    if (n >= 2) {
+      const ints = [];
+      for (let i = 1; i < n; i++) ints.push(recent[i].s - recent[i - 1].s);
+      out.avgInt = ints.reduce((a, b) => a + b, 0) / ints.length;
+      const last = ints.slice(-6);
+      const mean = last.reduce((a, b) => a + b, 0) / last.length;
+      const sd = Math.sqrt(last.reduce((a, b) => a + (b - mean) ** 2, 0) / last.length);
+      out.cv = sd / mean;
+      out.span = recent[n - 1].s - recent[0].s;
+    }
+    // Long silence since the last contraction means the pattern has faded.
+    const lastStart = state.list.length ? state.list[state.list.length - 1].s : null;
+    out.stale = state.cur === null && lastStart !== null && now - lastStart > Math.max(20 * MIN, (out.avgInt || 0) * 2.5);
+    return out;
+  }
+
+  function phaseOf(a) {
+    if (a.n < 3 || a.avgInt === null) return null;
+    const intMin = a.avgInt / MIN, durS = a.avgDur / 1000;
+    const irregular = a.cv > 0.4;
+    if (intMin > 10 || (irregular && intMin > 5) || a.stale) return "prep";
+    if (intMin > 5.5) return "latent";
+    if (intMin > 3 || durS < 50) return "active";
+    return "transition";
+  }
+
+  const PHASE_TEXT = {
+    prep: "Похоже на подготовительные схватки или самое начало родов",
+    latent: "Похоже на латентную (раннюю) фазу",
+    active: "Похоже на активную фазу родов",
+    transition: "Похоже на переходный период",
+  };
+
+  function verdict(a) {
+    const p = phaseOf(a);
+    if (!p) {
+      const left = Math.max(0, 3 - a.n);
+      return {
+        level: "none", tag: "Ждём данных", phase: null,
+        head: "Отметьте несколько схваток подряд",
+        why: left ? "Для оценки нужно ещё " + left + " " + plural(left, "схватка", "схватки", "схваток") + " в течение часа." : "Продолжайте отмечать схватки.",
+      };
+    }
+    const intMin = a.avgInt / MIN, durS = a.avgDur / 1000, spanMin = a.span / MIN;
+    const regular = a.cv <= 0.4;
+    const pattern = "Сейчас: в среднем каждые " + human(a.avgInt) + ", по " + human(a.avgDur) + ".";
+    let level = "home", head = PHASE_TEXT[p] + ". Пока можно оставаться дома.", why = pattern;
+
+    if (p === "prep") {
+      why = pattern + (a.stale ? " Схватки затихли — возможно, это были тренировочные." : " Отдохните, примите тёплый душ, смените позу: тренировочные схватки обычно стихают, настоящие — усиливаются и учащаются.");
+    } else if (regular && intMin <= 3) {
+      level = "now"; head = "Езжайте в роддом сейчас";
+      why = pattern + " Схватки частые и регулярные.";
+    } else if (state.parity === "first") {
+      const fits = regular && intMin <= 5.5 && durS >= 50;
+      if (fits && spanMin >= 50) {
+        level = "go"; head = "Пора ехать в роддом";
+        why = pattern + " Правило 5-1-1 выполнено: так уже около часа.";
+      } else if (fits) {
+        level = "soon"; head = "Собирайтесь — почти 5-1-1";
+        why = pattern + " Схватки подходят под правило, но нужно, чтобы так продолжалось час. Осталось примерно " + Math.max(1, Math.round(60 - spanMin)) + " мин наблюдения.";
+      } else if (regular && intMin <= 7) {
+        level = "soon"; head = PHASE_TEXT[p] + ". Готовьтесь к выезду.";
+        why = pattern + " Когда станут каждые 5 минут по минуте в течение часа — пора ехать.";
+      } else {
+        why = pattern + " При первых родах ориентир — схватки каждые 5 минут по минуте в течение часа.";
+      }
+    } else {
+      if (regular && intMin <= 10 && spanMin >= 25) {
+        level = "go"; head = "Пора ехать в роддом";
+        why = pattern + " При повторных родах регулярных схваток каждые 7–10 минут достаточно, чтобы выезжать.";
+      } else if (intMin <= 12) {
+        level = "soon"; head = PHASE_TEXT[p] + ". Собирайтесь.";
+        why = pattern + (regular ? " Если так продержится ещё " + Math.max(1, Math.round(25 - spanMin)) + " мин — выезжайте." : " Схватки пока нерегулярные; как станут ровными каждые 7–10 минут — выезжайте.");
+      } else {
+        why = pattern + " При повторных родах выезжайте, когда схватки станут регулярными, каждые 7–10 минут.";
+      }
+    }
+    return { level, tag: { home: "Можно дома", soon: "Готовьтесь", go: "Ехать", now: "Ехать сейчас" }[level], head, why, phase: p };
+  }
+
+  function plural(n, one, few, many) {
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+    return many;
+  }
+
+  // ---------- Rendering ----------
+  const ORDER = ["prep", "latent", "active", "transition"];
+
+  function renderStatic() {
+    const now = Date.now();
+    const a = analyse(now);
+    const v = verdict(a);
+    $("verdict").dataset.level = v.level;
+    $("vTag").textContent = v.tag;
+    $("vHead").textContent = v.head;
+    $("vWhy").textContent = v.why;
+    const idx = v.phase ? ORDER.indexOf(v.phase) : -1;
+    document.querySelectorAll("#track div").forEach((d, i) => {
+      d.classList.toggle("on", i === idx);
+      d.classList.toggle("past", i < idx);
+    });
+
+    $("sCount").textContent = a.n;
+    $("sDur").textContent = a.avgDur ? mmss(a.avgDur) : "—";
+    $("sInt").textContent = a.avgInt ? mmss(a.avgInt) : "—";
+
+    const big = $("big");
+    big.classList.toggle("live", state.cur !== null);
+    big.textContent = state.cur !== null ? "Схватка закончилась" : "Началась схватка";
+
+    $("demoBanner").hidden = !state.demo;
+    document.querySelector('input[value="' + state.parity + '"]').checked = true;
+
+    const log = $("log");
+    if (!state.list.length) {
+      log.innerHTML = '<p class="empty">Здесь появятся ваши схватки: время начала, длительность и интервал.</p>';
+    } else {
+      const rows = state.list.map((c, i) => {
+        const prev = state.list[i - 1];
+        return "<tr><td class=\"num\">" + clockTime(c.s) + "</td><td class=\"num\">" + mmss(c.e - c.s) +
+          "</td><td class=\"num\">" + (prev ? mmss(c.s - prev.s) : "—") +
+          "</td><td><button type=\"button\" class=\"del\" data-i=\"" + i + "\" aria-label=\"Удалить схватку в " + clockTime(c.s) + "\">×</button></td></tr>";
+      }).reverse();
+      log.innerHTML = "<div style=\"overflow-x:auto\"><table><thead><tr><th>Начало</th><th>Длилась</th><th>Интервал</th><th></th></tr></thead><tbody>" + rows.join("") + "</tbody></table></div>";
+    }
+  }
+
+  function tick() {
+    const now = Date.now();
+    if (state.cur !== null) {
+      $("clockLabel").textContent = "Идёт схватка";
+      $("clockTime").textContent = mmss(now - state.cur);
+    } else if (state.list.length) {
+      const last = state.list[state.list.length - 1];
+      $("clockLabel").textContent = "Отдых после схватки";
+      $("clockTime").textContent = mmss(now - last.e);
+    } else {
+      $("clockLabel").textContent = "Схваток пока нет";
+      $("clockTime").textContent = "—";
+    }
+  }
+
+  let lastMinute = 0;
+  setInterval(() => {
+    tick();
+    const m = Math.floor(Date.now() / 30000);
+    if (m !== lastMinute) { lastMinute = m; renderStatic(); }
+  }, 250);
+
+  // ---------- Actions ----------
+  $("big").addEventListener("click", () => {
+    const now = Date.now();
+    if (state.demo) { state = { list: [], cur: null, parity: state.parity, demo: false }; }
+    if (state.cur === null) {
+      state.cur = now;
+    } else {
+      if (now - state.cur >= 5000) state.list.push({ s: state.cur, e: now });
+      state.cur = null;
+    }
+    if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+    save(); renderStatic(); tick(); keepAwake();
+  });
+
+  document.querySelectorAll('input[name="parity"]').forEach((r) =>
+    r.addEventListener("change", () => { state.parity = r.value; save(); renderStatic(); }));
+
+  $("log").addEventListener("click", (e) => {
+    const b = e.target.closest(".del");
+    if (!b) return;
+    state.list.splice(Number(b.dataset.i), 1);
+    save(); renderStatic(); tick();
+  });
+
+  const clearWrap = $("clearWrap");
+  const clearIdle = clearWrap.innerHTML;
+  clearWrap.addEventListener("click", (e) => {
+    const id = e.target.id;
+    if (id === "clearBtn") {
+      clearWrap.innerHTML = '<span class="confirm">Удалить все записи? <button type="button" class="ghost danger" id="clearYes">Да, удалить</button><button type="button" class="ghost" id="clearNo">Нет</button></span>';
+    } else if (id === "clearYes") {
+      state = { list: [], cur: null, parity: state.parity, demo: false };
+      save(); renderStatic(); tick(); clearWrap.innerHTML = clearIdle;
+    } else if (id === "clearNo") {
+      clearWrap.innerHTML = clearIdle;
+    }
+  });
+
+  $("demoClear").addEventListener("click", () => {
+    state = { list: [], cur: null, parity: state.parity, demo: false };
+    save(); renderStatic(); tick();
+  });
+
+  $("demoBtn").addEventListener("click", () => {
+    const now = Date.now();
+    const list = [];
+    let t = now - 64 * MIN;
+    const jitter = [10, -20, 25, -5, 15, -25, 5, 20, -10, 0, 15, -15, 10];
+    for (let i = 0; i < 13; i++) {
+      const dur = (55 + ((i * 7) % 16)) * 1000;
+      list.push({ s: t, e: t + dur });
+      t += 5 * MIN + jitter[i] * 1000;
+    }
+    state = { list: list.filter((c) => c.e < now), cur: null, parity: state.parity, demo: true };
+    save(); renderStatic(); tick();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ---------- Keep the screen on ----------
+  let lock = null;
+  async function keepAwake() {
+    try {
+      if ("wakeLock" in navigator && !lock && document.visibilityState === "visible") {
+        lock = await navigator.wakeLock.request("screen");
+        lock.addEventListener("release", () => { lock = null; });
+      }
+    } catch (e) { lock = null; }
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") { keepAwake(); renderStatic(); tick(); }
+  });
+  keepAwake();
+
+  renderStatic(); tick();
+})();
+</script>
+
+</body>
+</html>
