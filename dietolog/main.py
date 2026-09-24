@@ -1,6 +1,7 @@
 """Бережный диетолог — Telegram-бот. Запуск: python main.py"""
 import asyncio
 import logging
+import random
 from datetime import date, datetime
 
 from aiogram import Bot, Dispatcher, F, Router
@@ -30,6 +31,19 @@ HELP = """\
 /birth 2026-11-20 — дата родов
 /settings — настройки: кормление, разрешение врача на нагрузки, скрывать вес
 """
+
+# Вечерние напоминания: если записей за день нет / если уже есть.
+REMIND_EMPTY = [
+    "Привет. Как прошёл день? Можно одним голосовым: что ела, как себя чувствовала, была ли прогулка.",
+    "Докладываю: весь день скучал. Расскажешь, как ты? Что ела, как живот, гуляли ли?",
+    "Вечерняя перекличка. Мама — есть? Как день, как живот, что было вкусного?",
+    "Если сегодня ела одной рукой, держа ребёнка другой, — это тоже считается. Расскажи, как прошёл день?",
+]
+REMIND_DONE = [
+    "Как ты сейчас? Если хочется — расскажи, как прошёл вечер и как живот.",
+    "Вечерний обход. Как самочувствие, как живот после ужина?",
+    "Как прошёл вечер? Чай в итоге выпит горячим или по классике — остывшим?",
+]
 
 TOGGLES = {
     "bf": ("breastfeeding", "Кормлю грудью"),
@@ -179,9 +193,9 @@ async def reminders(bot: Bot) -> None:
             if due and p.get("last_remind") != today:
                 db.set_profile("last_remind", today)
                 if db.count_today():
-                    await bot.send_message(ALLOWED_USER_ID, "Как ты сейчас? Если хочется — расскажи, как прошёл вечер и как живот.")
+                    await bot.send_message(ALLOWED_USER_ID, random.choice(REMIND_DONE))
                 else:
-                    await bot.send_message(ALLOWED_USER_ID, "Привет. Как прошёл день? Можно одним голосовым: что ела, как себя чувствовала, была ли прогулка.")
+                    await bot.send_message(ALLOWED_USER_ID, random.choice(REMIND_EMPTY))
                 if now.weekday() == 6:
                     await bot.send_message(ALLOWED_USER_ID, await _week_text())
         except Exception:
