@@ -19,8 +19,6 @@ CREATE TABLE IF NOT EXISTS entries (
     hunger   INTEGER,            -- голод до еды 0–10
     fullness INTEGER,            -- сытость после 0–10
     belly    TEXT,               -- комфорт / тяжесть / вздутие / изжога / боль
-    energy   INTEGER,            -- 1–5
-    mood     INTEGER,            -- 1–5
     raw_text TEXT                -- исходный текст отчёта
 );
 CREATE TABLE IF NOT EXISTS measures (
@@ -37,12 +35,11 @@ CREATE TABLE IF NOT EXISTS weeks (
 );
 """
 
-ENTRY_FIELDS = ("kind", "tags", "note", "hunger", "fullness", "belly", "energy", "mood")
+ENTRY_FIELDS = ("kind", "tags", "note", "hunger", "fullness", "belly")
 
-# Профиль по умолчанию: кормление грудью до года, нагрузки — только после врача.
+# Профиль по умолчанию: кормление грудью до года.
 DEFAULT_PROFILE = {
     "breastfeeding": "да",
-    "doctor_ok": "нет",
     "hide_weight": "нет",
 }
 
@@ -79,8 +76,8 @@ def add_entries(entries: list[dict], raw_text: str) -> None:
     with connect() as conn:
         for e in entries:
             conn.execute(
-                "INSERT INTO entries (ts, kind, tags, note, hunger, fullness, belly, energy, mood, raw_text)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO entries (ts, kind, tags, note, hunger, fullness, belly, raw_text)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (ts, e["kind"], json.dumps(e.get("tags") or [], ensure_ascii=False),
                  *(e.get(f) for f in ENTRY_FIELDS[2:]), raw_text),
             )

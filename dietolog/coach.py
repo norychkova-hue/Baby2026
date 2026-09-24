@@ -26,10 +26,8 @@ LOG_SCHEMA = {
                     "hunger": NULLABLE_INT,
                     "fullness": NULLABLE_INT,
                     "belly": {"type": ["string", "null"]},
-                    "energy": NULLABLE_INT,
-                    "mood": NULLABLE_INT,
                 },
-                "required": ["kind", "tags", "note", "hunger", "fullness", "belly", "energy", "mood"],
+                "required": ["kind", "tags", "note", "hunger", "fullness", "belly"],
                 "additionalProperties": False,
             },
         },
@@ -63,7 +61,7 @@ def _context(days: int) -> str:
     if birth := p.get("birth_date"):
         weeks = (now.date() - date.fromisoformat(birth)).days // 7
         lines.append(f"Дата родов: {birth} ({weeks} нед. назад)." if weeks >= 0 else f"Роды ожидаются {birth}.")
-    lines.append(f"Кормит грудью: {p['breastfeeding']}. Врач разрешил нагрузки: {p['doctor_ok']}.")
+    lines.append(f"Кормит грудью: {p['breastfeeding']}.")
     if focus := db.current_focus():
         lines.append(f"Фокус этой недели: {focus}")
 
