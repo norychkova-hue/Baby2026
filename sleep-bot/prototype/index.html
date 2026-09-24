@@ -113,11 +113,68 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
 .notes{max-width:1160px;margin:28px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;color:var(--muted);font-size:14px}
 .notes b{color:var(--ink);display:block;margin-bottom:2px}
 @media (prefers-reduced-motion: reduce){.big{transition:none}}
+
+/* ввод: круг, бегунки, кружочки */
+.phone{position:relative}
+#sheet{position:absolute;left:10px;right:10px;bottom:10px;background:var(--phone);border:1px solid var(--line);box-shadow:var(--shadow);z-index:2}
+.hero{display:grid;justify-items:center;gap:14px}
+.ring{position:relative;width:220px;height:220px;max-width:100%}
+.ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.ring .track{stroke:var(--line)}
+.ring .prog{stroke:var(--feed);stroke-linecap:round;transition:stroke-dashoffset .4s}
+.circle{position:absolute;inset:18px;border-radius:50%;border:0;cursor:pointer;background:var(--c);color:#fff;
+  font:inherit;font-size:20px;font-weight:600;display:grid;place-content:center;gap:4px;transition:transform .12s}
+.circle .ic{font-size:44px;line-height:1}
+.circle:active{transform:scale(.97)}
+:root[data-theme="dark"] .circle{color:#10151B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .circle{color:#10151B}}
+.ringnote{font-size:12px;color:var(--muted);text-align:center}
+.ringnote b{color:var(--feed);font-weight:600}
+.pillrow{display:flex;gap:10px;justify-content:center}
+.pill{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:12px 18px;font:inherit;font-size:15px;font-weight:500;color:var(--ink);cursor:pointer}
+.sheet{border-radius:18px;background:var(--surface);padding:14px;display:grid;gap:12px}
+.sheet h3{margin:0;font-size:16px;font-weight:600}
+.when{display:flex;justify-content:space-between;align-items:baseline}
+.when .tbig{font-size:26px;font-weight:700}
+.when .ago{font-size:13px;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:36px;background:transparent;margin:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--line)}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--phone);border:3px solid var(--k,var(--sleep));margin-top:-11px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--phone);border:3px solid var(--k,var(--sleep))}
+input[type=range]:focus-visible{outline:3px solid var(--sleep);outline-offset:2px;border-radius:8px}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:-6px}
+.acts{display:flex;gap:8px}
+.ok-btn{flex:1;border:0;border-radius:14px;padding:13px;font:inherit;font-weight:600;background:var(--sleep);color:#fff;cursor:pointer}
+:root[data-theme="dark"] .ok-btn{color:#10151B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ok-btn{color:#10151B}}
+.ghost{border:1px solid var(--line);border-radius:14px;padding:13px 14px;font:inherit;background:var(--phone);color:var(--feed);cursor:pointer}
+.dots{display:flex;gap:10px}
+.dots button{width:48px;height:48px;border-radius:50%;border:2px solid var(--line);background:var(--phone);font:inherit;font-size:16px;font-weight:600;color:var(--ink);cursor:pointer}
+.dots button[aria-pressed="true"]{background:var(--sleep);border-color:var(--sleep);color:#fff}
+.opt{font-size:12px;color:var(--faint);font-weight:400}
+.lbl{font-size:14px;font-weight:500;display:flex;justify-content:space-between;align-items:baseline}
+.dual{position:relative;height:36px}
+.dual input{position:absolute;inset:0;pointer-events:none}
+.dual input::-webkit-slider-thumb{pointer-events:auto}
+.dual input::-moz-range-thumb{pointer-events:auto}
+.dual input + input::-webkit-slider-runnable-track{background:transparent}
+.dual input + input::-moz-range-track{background:transparent}
+.nightband{position:absolute;top:14px;height:8px;border-radius:4px;background:var(--sleep);opacity:.35;pointer-events:none}
+.times{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.times div{background:var(--phone);border-radius:12px;padding:8px 10px;display:grid}
+.times span{font-size:12px;color:var(--muted)}.times b{font-size:22px}
+.wbig{text-align:center;display:grid;gap:2px}
+.wbig b{font-size:40px;letter-spacing:-.02em}
+.wbig span{font-size:13px;color:var(--muted)}
+.steprow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.round{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--phone);font:inherit;font-size:22px;color:var(--ink);cursor:pointer}
 </style>
 
 <header class="intro">
   <h1>Сонный помощник — как это будет выглядеть</h1>
-  <p>Макет Mini App и чата бота на примере малыша 12 дней. Главный экран можно нажимать: кнопки меняют состояние и показывают, как исправить время или отменить запись.</p>
+  <p>Макет Mini App и чата бота на примере малыша 12 дней. Всё вводится пальцем: круглая кнопка, бегунок для времени, кружочки для количества. Клавиатура не нужна. Первые три экрана можно нажимать.</p>
 </header>
 
 <main class="board">
@@ -127,25 +184,83 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
     <div class="phone">
       <div class="tg"><div class="ava">🌙</div><div><b>Сонный помощник</b><br><span>мини-приложение</span></div></div>
       <div class="screen">
-        <div class="age"><span>12 дней</span><span id="clock">13:05</span></div>
+        <div class="age"><span>12 дней</span><span>13:05</span></div>
         <div class="state" id="state"></div>
-        <button class="big" id="bigBtn" type="button"></button>
-        <div class="toast" id="toast" hidden>
-          <span class="t" id="toastText"></span>
-          <button class="chip" type="button" data-shift="5">−5</button>
-          <button class="chip" type="button" data-shift="10">−10</button>
-          <button class="chip" type="button" data-shift="15">−15 мин</button>
-          <button class="chip undo" type="button" id="undo">Отменить</button>
+        <div class="hero">
+          <div class="ring">
+            <svg viewBox="0 0 220 220" aria-hidden="true"><circle class="track" cx="110" cy="110" r="104"/><circle class="prog" id="prog" cx="110" cy="110" r="104"/></svg>
+            <button class="circle" id="circle" type="button"></button>
+          </div>
+          <div class="ringnote" id="ringnote"></div>
+          <div class="pillrow"><button class="pill" type="button" id="feedBtn">🤱 Кормление</button></div>
         </div>
-        <button class="sec" type="button" id="feedBtn">🤱 Кормление</button>
-        <div class="today"><span id="todayLine">Сегодня: сон 5 ч 20 мин · 5 кормлений</span><button class="more" type="button">Подробнее ›</button></div>
+
+        <div class="sheet" id="sheet" hidden>
+          <div class="when"><h3 id="sheetTitle">Проснулся</h3><span class="ago" id="ago">сейчас</span></div>
+          <div class="when"><span class="tbig" id="tbig">13:05</span></div>
+          <input type="range" id="shift" min="0" max="60" step="5" value="0" aria-label="Сколько минут назад">
+          <div class="scale"><span>сейчас</span><span>30 мин назад</span><span>час назад</span></div>
+          <div class="lbl" id="sideRow" hidden>Грудь <span class="opt">по желанию</span></div>
+          <div class="dots" id="side" hidden><button type="button" aria-pressed="false">Л</button><button type="button" aria-pressed="false">П</button></div>
+          <div class="acts"><button class="ok-btn" type="button" id="done">Готово</button><button class="ghost" type="button" id="undo">Отменить</button></div>
+        </div>
+
+        <div class="today"><span id="todayLine"></span><button class="more" type="button">Подробнее ›</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Ночь утром -->
+  <section class="col">
+    <div class="cap">2 · Утром: ночь одной записью</div>
+    <div class="phone">
+      <div class="tg"><div class="ava">🌙</div><div><b>Доброе утро</b><br><span>как прошла ночь?</span></div></div>
+      <div class="screen">
+        <div class="sheet">
+          <div class="times"><div><span>Уснул</span><b id="nFrom">21:40</b></div><div><span>Проснулся</span><b id="nTo">7:10</b></div></div>
+          <div class="dual">
+            <span class="nightband" id="band"></span>
+            <input type="range" id="nA" min="0" max="192" step="1" value="44" aria-label="Уснул">
+            <input type="range" id="nB" min="0" max="192" step="1" value="158" aria-label="Проснулся" style="--k:var(--awake)">
+          </div>
+          <div class="scale"><span>18:00</span><span>0:00</span><span>6:00</span><span>10:00</span></div>
+          <p class="opt" style="margin:0">Время уже подставлено из нажатий. Двигайте, только если неверно.</p>
+        </div>
+        <div class="sheet">
+          <div class="lbl">Просыпался ночью</div>
+          <div class="dots" id="wakes"><button type="button" aria-pressed="false">0</button><button type="button" aria-pressed="false">1</button><button type="button" aria-pressed="true">2</button><button type="button" aria-pressed="false">3+</button></div>
+          <div class="lbl">Не спал подолгу (30+ мин)? <span class="opt">по желанию</span></div>
+          <div class="dots" id="long"><button type="button" aria-pressed="true" style="width:auto;padding:0 18px;border-radius:24px">Нет</button><button type="button" aria-pressed="false" style="width:auto;padding:0 18px;border-radius:24px">Да</button></div>
+        </div>
+        <div class="acts" style="margin-top:auto"><button class="ok-btn" type="button">Всё верно</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Вес -->
+  <section class="col">
+    <div class="cap">3 · Вес: бегунок вместо клавиатуры</div>
+    <div class="phone">
+      <div class="tg"><div class="ava">🌙</div><div><b>Свежий вес</b><br><span>бот спрашивает сам</span></div></div>
+      <div class="screen">
+        <div class="wbig"><b id="wVal">3 390 г</b><span id="wDiff">+30 г за 5 дней</span></div>
+        <div class="sheet">
+          <div class="steprow">
+            <button class="round" type="button" id="wMinus" aria-label="Минус 10 грамм">−</button>
+            <input type="range" id="w" min="3060" max="3660" step="10" value="3390" aria-label="Вес в граммах" style="--k:var(--feed)">
+            <button class="round" type="button" id="wPlus" aria-label="Плюс 10 грамм">+</button>
+          </div>
+          <div class="scale"><span>−300 г</span><span>прошлый 3 360 г</span><span>+300 г</span></div>
+        </div>
+        <p class="opt" style="margin:0;text-align:center">Бегунок стартует с прошлого веса. Кнопки ± — точно по 10 г.</p>
+        <div class="acts" style="margin-top:auto"><button class="ok-btn" type="button">Сохранить</button></div>
       </div>
     </div>
   </section>
 
   <!-- 2. Подробнее -->
   <section class="col">
-    <div class="cap">2 · «Подробнее» — только если захочется</div>
+    <div class="cap">4 · «Подробнее» — только если захочется</div>
     <div class="phone">
       <div class="tg"><div class="ava">🌙</div><div><b>Подробнее</b><br><span>сутки с 7:40</span></div></div>
       <div class="screen">
@@ -190,7 +305,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
 
   <!-- 3. Чат бота -->
   <section class="col">
-    <div class="cap">3 · Чат бота: только важное</div>
+    <div class="cap">5 · Чат бота: только важное</div>
     <div class="phone">
       <div class="tg"><div class="ava">🌙</div><div><b>Сонный помощник</b><br><span>бот</span></div></div>
       <div class="chat">
@@ -224,66 +339,76 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
 
 <section class="notes">
   <div><b>Одно нажатие</b>Время ставится само, дневной или ночной сон — тоже. Ничего заполнять не нужно.</div>
-  <div><b>Ошибся — не страшно</b>После каждой записи: −5 / −10 / −15 мин или «Отменить».</div>
+  <div><b>Ошибся — не страшно</b>После нажатия бегунок «когда»: сейчас … час назад. И «Отменить».</div>
   <div><b>Три напоминания</b>Кормление, «скоро укладывать» и утренняя сводка с одним советом. Остальное — выключено.</div>
   <div><b>Ночью тихо</b>Тёмная тема следует Telegram. Звук ночью — только если нужно будить на кормление.</div>
 </section>
 
 <script>
 (function(){
-  const NOW = 13*60+5;                 // 13:05 в примере
-  const FEED_EVERY = 180;              // режим «контроль набора»: 3 ч
-  const WW = 45;                       // бодрствование для 0–1 мес: 30–50 мин
-  let s = {asleep:true, since:11*60+55, lastFeed:11*60+20, sleepMin:320, feeds:5};
-  let prev = null;
-
-  const hm = m => { m=((m%1440)+1440)%1440; return Math.floor(m/60)+':'+String(m%60).padStart(2,'0'); };
-  const dur = m => m<60 ? m+' мин' : Math.floor(m/60)+' ч'+(m%60?' '+(m%60)+' мин':'');
-  const $ = id => document.getElementById(id);
+  const NOW=13*60+5, FEED_EVERY=180, WW=45;
+  let s={asleep:true, since:11*60+55, lastFeed:11*60+20, sleepMin:320, feeds:5};
+  let prev=null, pending=null;
+  const $=id=>document.getElementById(id);
+  const hm=m=>{m=((m%1440)+1440)%1440;return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+  const dur=m=>m<60?m+' мин':Math.floor(m/60)+' ч'+(m%60?' '+(m%60)+' мин':'');
+  const C=2*Math.PI*104; $('prog').style.strokeDasharray=C;
 
   function render(){
-    const feedAt = s.lastFeed + FEED_EVERY;
-    const st = $('state'), big = $('bigBtn');
+    const feedAt=s.lastFeed+FEED_EVERY;
     if(s.asleep){
-      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--sleep)"></span>Спит ${dur(NOW-s.since)}</div>
-        <div class="next">Будить ≈ ${hm(feedAt)} — кормление</div>
-        <div class="why">Прошлое кормление в ${hm(s.lastFeed)}, каждые 3 ч, пока вес не вернётся</div>`;
-      big.textContent = '☀️ Проснулся';
-      big.style.setProperty('--c','var(--awake)');
-    } else {
-      const put = s.since + WW;
-      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--awake)"></span>Не спит ${dur(Math.max(0,NOW-s.since))}</div>
-        <div class="next">Укладывать ≈ ${hm(put)}</div>
-        <div class="why">или раньше, если зевает, трёт глаза, «зависает». Кормление ≈ ${hm(feedAt)}</div>`;
-      big.textContent = '😴 Уснул';
-      big.style.setProperty('--c','var(--sleep)');
+      $('state').innerHTML=`<div class="now">Спит ${dur(NOW-s.since)}</div><div class="next">Будить ≈ ${hm(feedAt)} — кормление</div><div class="why">Сон 1 ч и дольше в 12 дней — обычное дело</div>`;
+      $('circle').innerHTML='<span class="ic">☀️</span>Проснулся'; $('circle').style.setProperty('--c','var(--awake)');
+    }else{
+      $('state').innerHTML=`<div class="now">Не спит ${dur(Math.max(0,NOW-s.since))}</div><div class="next">Укладывать ≈ ${hm(s.since+WW)}</div><div class="why">или раньше, если зевает, трёт глаза</div>`;
+      $('circle').innerHTML='<span class="ic">😴</span>Уснул'; $('circle').style.setProperty('--c','var(--sleep)');
     }
-    $('todayLine').textContent = `Сегодня: сон ${dur(s.sleepMin)} · ${s.feeds} кормл.`;
+    const passed=Math.min(1,Math.max(0,(NOW-s.lastFeed)/FEED_EVERY));
+    $('prog').style.strokeDashoffset=C*(1-passed);
+    $('ringnote').innerHTML=`Кольцо — время до кормления: <b>прошло ${dur(NOW-s.lastFeed)} из 3 ч</b>`;
+    $('todayLine').textContent=`Сегодня: сон ${dur(s.sleepMin)} · ${s.feeds} кормл.`;
   }
-
-  function log(text, change){
-    prev = JSON.parse(JSON.stringify(s));
-    change();
-    $('toastText').textContent = text;
-    $('toast').hidden = false;
+  function open(kind,title){
+    prev=JSON.parse(JSON.stringify(s)); pending=kind;
+    $('sheetTitle').textContent=title; $('shift').value=0;
+    $('sideRow').hidden=$('side').hidden=(kind!=='feed');
+    $('side').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed','false'));
+    apply(0); $('sheet').hidden=false;
+  }
+  function apply(d){
+    const t=NOW-d;
+    $('tbig').textContent=hm(t); $('ago').textContent=d?d+' мин назад':'сейчас';
+    s=JSON.parse(JSON.stringify(prev));
+    if(pending==='wake'){s.sleepMin+=t-s.since;s.asleep=false;s.since=t}
+    if(pending==='sleep'){s.asleep=true;s.since=t}
+    if(pending==='feed'){s.lastFeed=t;s.feeds++}
     render();
   }
-
-  $('bigBtn').addEventListener('click', ()=>{
-    if(s.asleep) log('Записано: проснулся в 13:05', ()=>{ s.sleepMin += NOW-s.since; s.asleep=false; s.since=NOW; });
-    else log('Записано: уснул в 13:05', ()=>{ s.asleep=true; s.since=NOW; });
-  });
-  $('feedBtn').addEventListener('click', ()=> log('Записано: кормление в 13:05', ()=>{ s.lastFeed=NOW; s.feeds++; }));
-  document.querySelectorAll('[data-shift]').forEach(b=>b.addEventListener('click',()=>{
-    const d=+b.dataset.shift, t=hm(NOW-d);
-    const txt=$('toastText').textContent;
-    if(/кормление в/.test(txt)) s.lastFeed=NOW-d;
-    else if(/уснул|проснулся/.test(txt)) s.since=NOW-d;
-    $('toastText').textContent = txt.replace(/\d{1,2}:\d{2}/, t);
-    render();
-  }));
-  $('undo').addEventListener('click',()=>{ if(prev){ s=prev; prev=null; } $('toast').hidden=true; render(); });
-
+  $('circle').onclick=()=>open(s.asleep?'wake':'sleep', s.asleep?'Проснулся':'Уснул');
+  $('feedBtn').onclick=()=>open('feed','Кормление');
+  $('shift').oninput=e=>apply(+e.target.value);
+  $('done').onclick=()=>{$('sheet').hidden=true;prev=null};
+  $('undo').onclick=()=>{if(prev)s=prev;prev=null;$('sheet').hidden=true;render()};
+  $('side').querySelectorAll('button').forEach(b=>b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';$('side').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed',String(on))});
   render();
+
+  // ночь: 0..192 = 18:00..10:00 шагом 5 мин
+  const toT=v=>hm(18*60+v*5);
+  function night(){
+    let a=+$('nA').value,b=+$('nB').value;
+    if(a>b-6){ if(document.activeElement===$('nA')) a=b-6; else b=a+6; $('nA').value=a;$('nB').value=b; }
+    $('nFrom').textContent=toT(a);$('nTo').textContent=toT(b);
+    const band=$('band'); band.style.left=(a/192*100)+'%'; band.style.width=((b-a)/192*100)+'%';
+  }
+  $('nA').oninput=$('nB').oninput=night; night();
+  ['wakes','long'].forEach(id=>$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true')}));
+
+  // вес
+  const fmt=g=>String(g).replace(/\B(?=(\d{3})+$)/,' ')+' г';
+  function w(){const g=+$('w').value,d=g-3360;$('wVal').textContent=fmt(g);$('wDiff').textContent=(d>=0?'+':'−')+Math.abs(d)+' г за 5 дней'}
+  $('w').oninput=w;
+  $('wMinus').onclick=()=>{$('w').value=+$('w').value-10;w()};
+  $('wPlus').onclick=()=>{$('w').value=+$('w').value+10;w()};
+  w();
 })();
 </script>
