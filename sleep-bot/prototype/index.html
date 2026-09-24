@@ -65,7 +65,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
 :root[data-theme="dark"] .big{color:#10151B}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .big{color:#10151B}}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.sec{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 10px;font:inherit;font-size:15px;
+.sec{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 10px;font:inherit;font-size:15px;
   font-weight:500;color:var(--ink);cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:center}
 .sec.on{background:var(--walk-soft);border-color:transparent;color:var(--walk)}
 .sec:focus-visible,.big:focus-visible,.chip:focus-visible,.more:focus-visible{outline:3px solid var(--sleep);outline-offset:2px}
@@ -137,10 +137,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
           <button class="chip" type="button" data-shift="15">−15 мин</button>
           <button class="chip undo" type="button" id="undo">Отменить</button>
         </div>
-        <div class="row">
-          <button class="sec" type="button" id="feedBtn">🤱 Кормление</button>
-          <button class="sec" type="button" id="walkBtn">🚶 Прогулка</button>
-        </div>
+        <button class="sec" type="button" id="feedBtn">🤱 Кормление</button>
         <div class="today"><span id="todayLine">Сегодня: сон 5 ч 20 мин · 5 кормлений</span><button class="more" type="button">Подробнее ›</button></div>
       </div>
     </div>
@@ -173,7 +170,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
           <div class="stat"><span class="k">Сон за сутки</span><span class="v">16 ч 10 мин</span><span class="n">норма 16–18 ч · <span class="ok">в норме</span></span></div>
           <div class="stat"><span class="k">Бодрствование за раз</span><span class="v">35–50 мин</span><span class="n">норма 30–50 мин · <span class="ok">в норме</span></span></div>
           <div class="stat"><span class="k">Кормления</span><span class="v">9 за сутки</span><span class="n">самый длинный перерыв 3 ч 10 мин</span></div>
-          <div class="stat"><span class="k">На улице</span><span class="v">1 ч 20 мин</span><span class="n">спал в коляске 55 мин</span></div>
+          <div class="stat"><span class="k">Самый длинный дневной сон</span><span class="v">1 ч 50 мин</span><span class="n">до 2,5–3 ч подряд · <span class="ok">в норме</span></span></div>
         </div>
 
         <div class="card" style="--c-soft:var(--feed-soft)">
@@ -199,7 +196,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
       <div class="chat">
         <div class="msg">
           <span><b>Доброе утро.</b> За сутки: сон 16 ч 10 мин (норма 16–18), 9 кормлений.</span>
-          <span>Совет на сегодня: днём побольше света и хотя бы одна прогулка — так малыш быстрее отличит день от ночи.</span>
+          <span>Совет на сегодня: днём побольше дневного света (у окна или на улице) — так малыш быстрее отличит день от ночи.</span>
           <span class="time">7:45</span>
         </div>
         <div class="msg">
@@ -237,7 +234,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
   const NOW = 13*60+5;                 // 13:05 в примере
   const FEED_EVERY = 180;              // режим «контроль набора»: 3 ч
   const WW = 45;                       // бодрствование для 0–1 мес: 30–50 мин
-  let s = {asleep:true, since:11*60+55, lastFeed:11*60+20, walk:false, walkSince:0, sleepMin:320, feeds:5};
+  let s = {asleep:true, since:11*60+55, lastFeed:11*60+20, sleepMin:320, feeds:5};
   let prev = null;
 
   const hm = m => { m=((m%1440)+1440)%1440; return Math.floor(m/60)+':'+String(m%60).padStart(2,'0'); };
@@ -248,8 +245,7 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
     const feedAt = s.lastFeed + FEED_EVERY;
     const st = $('state'), big = $('bigBtn');
     if(s.asleep){
-      const place = s.walk ? ' в коляске' : '';
-      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--sleep)"></span>Спит ${dur(NOW-s.since)}${place}</div>
+      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--sleep)"></span>Спит ${dur(NOW-s.since)}</div>
         <div class="next">Будить ≈ ${hm(feedAt)} — кормление</div>
         <div class="why">Прошлое кормление в ${hm(s.lastFeed)}, каждые 3 ч, пока вес не вернётся</div>`;
       big.textContent = '☀️ Проснулся';
@@ -262,8 +258,6 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
       big.textContent = '😴 Уснул';
       big.style.setProperty('--c','var(--sleep)');
     }
-    $('walkBtn').classList.toggle('on', s.walk);
-    $('walkBtn').textContent = s.walk ? `🚶 Гуляем ${dur(Math.max(0,NOW-s.walkSince))}` : '🚶 Прогулка';
     $('todayLine').textContent = `Сегодня: сон ${dur(s.sleepMin)} · ${s.feeds} кормл.`;
   }
 
@@ -280,15 +274,10 @@ body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-
     else log('Записано: уснул в 13:05', ()=>{ s.asleep=true; s.since=NOW; });
   });
   $('feedBtn').addEventListener('click', ()=> log('Записано: кормление в 13:05', ()=>{ s.lastFeed=NOW; s.feeds++; }));
-  $('walkBtn').addEventListener('click', ()=>{
-    if(s.walk) log('Прогулка закончилась в 13:05', ()=>{ s.walk=false; });
-    else log('Прогулка началась в 13:05. Кормление ≈ '+hm(s.lastFeed+FEED_EVERY), ()=>{ s.walk=true; s.walkSince=NOW; });
-  });
   document.querySelectorAll('[data-shift]').forEach(b=>b.addEventListener('click',()=>{
     const d=+b.dataset.shift, t=hm(NOW-d);
     const txt=$('toastText').textContent;
     if(/кормление в/.test(txt)) s.lastFeed=NOW-d;
-    else if(/Прогулка началась/.test(txt)) s.walkSince=NOW-d;
     else if(/уснул|проснулся/.test(txt)) s.since=NOW-d;
     $('toastText').textContent = txt.replace(/\d{1,2}:\d{2}/, t);
     render();
