@@ -133,6 +133,17 @@
   .go { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-family: var(--display); font-weight: 700; font-size: 16px; background: var(--accent); color: var(--accent-ink); }
   .go.live { background: var(--surface-2); color: var(--ink); }
   .elapsed { font-size: 14px; color: var(--muted); display: flex; gap: 12px; justify-content: space-between; width: 100%; flex-wrap: wrap; }
+  .level { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .level-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; }
+  .level-head b { font-weight: 600; }
+  .level input[type="range"] { width: 100%; margin: 4px 0 0; accent-color: var(--accent); height: 28px; }
+  .level-marks { display: grid; grid-template-columns: repeat(3, 1fr); font-size: 12px; color: var(--muted); }
+  .level-marks span:nth-child(2) { text-align: center; }
+  .level-marks span:last-child { text-align: right; }
+  .level-marks span.on { color: var(--ink); font-weight: 600; }
+  .level-note { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .sounds { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .sounds-label { font-size: 14px; }
   .toggles { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; }
   .toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
   .toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
@@ -171,6 +182,17 @@
       <p class="tname" id="tName"></p>
       <p class="rhythm num" id="tRhythm"></p>
     </div>
+    <div class="level">
+      <div class="level-head"><label for="level">Мой уровень дыхания</label><b id="levelName"></b></div>
+      <input type="range" id="level" min="0" max="2" step="1" value="0" aria-describedby="levelNote">
+      <div class="level-marks" aria-hidden="true"><span>Начинающая</span><span>Средняя</span><span>Профи</span></div>
+      <p class="level-note" id="levelNote"></p>
+    </div>
+    <div class="sounds" id="soundsBox">
+      <span class="sounds-label">Звук на выдохе</span>
+      <div class="modes" id="sounds" role="group" aria-label="Звук на выдохе"></div>
+      <p class="level-note" id="soundTip"></p>
+    </div>
     <div class="orb-box">
       <div class="orb-ring"></div>
       <div class="orb" id="orb"></div>
@@ -208,6 +230,7 @@
       <li><b>Выдох длиннее вдоха.</b> Длинный выдох успокаивает нервную систему: меньше адреналина, сосуды матки не сжимаются, кровь лучше идёт к плаценте.</li>
       <li><b>Медленно, а не часто.</b> Если покалывает губы или пальцы, кружится голова, значит, вы дышите слишком часто. Замедлитесь и сделайте несколько вдохов в сложенные ладони.</li>
       <li><b>После схватки — два глубоких вдоха «для малыша».</b> Сосуды раскрываются, плацента снова наполняется кровью, и этот кислород идёт прямо к нему.</li>
+      <li><b>Пойте и меняйте звуки.</b> «Ооо», «ааа», «ууу», «ммм», «шшш» — пробуйте разные: одни схватки легче «пропеть», другие «прогудеть». Звук сам удлиняет выдох, а «ммм» ещё и вибрирует — малыш чувствует её изнутри.</li>
       <li><b>Низкий звук вместо крика.</b> Гул «ооо» или «ммм» расслабляет горло и челюсть, а вместе с ними тазовое дно. Высокий крик, наоборот, зажимает.</li>
       <li><b>Потуги на выдохе.</b> Долго тужиться на задержке «на счёт до десяти» стоит, только если об этом попросит акушерка. Она видит сердцебиение малыша.</li>
       <li><b>Мягкое лицо, мягкие руки.</b> Разожмите кулаки и челюсть, опустите плечи. Напряжение наверху передаётся вниз.</li>
@@ -272,7 +295,7 @@
         id: "wave", label: "Во время схватки", name: "Дыхание-волна со звуком",
         steps: [
           { k: "in", s: 4, cue: "Вдох", sub: "Носом, спокойно" },
-          { k: "out", s: 8, cue: "Выдох «ооо»", sub: "Низкий гул, челюсть мягкая, опускаем малыша вниз" },
+          { k: "out", s: 8, snd: true, cue: "Выдох", sub: "Низкий гул, челюсть мягкая, опускаем малыша вниз" },
         ],
         baby: [
           "На пике схватки хочется замереть. Именно тогда малышу важнее всего, чтобы вы продолжали дышать: задержка на полминуты уменьшает его запас.",
@@ -281,7 +304,7 @@
           "Малыш сейчас поворачивается в тазу. Ему помогают ваше движение и мягкое, расслабленное тело.",
         ],
       }],
-      how: "Схватку встречайте вдохом, на выдохе тяните низкий звук. Представьте, что выдох стекает вниз, к малышу. Двигайтесь: покачивания тазом, фитбол, наклоны вперёд.",
+      how: "Схватку встречайте вдохом, на выдохе тяните низкий звук: «ооо», «ааа», «ууу», «ммм» или «шшш» — меняйте, пока не найдёте свой. Представьте, что выдох стекает вниз, к малышу. Двигайтесь: покачивания тазом, фитбол, наклоны вперёд.",
       avoid: ["Не кричите высоким голосом, это зажимает", "Не сжимайте челюсть и кулаки", "Не лежите на спине без необходимости, это пережимает крупные сосуды"],
       partner: "Считайте дыхания вслух («осталось три»), напоминайте опустить плечи и разжать челюсть.",
     },
@@ -293,7 +316,7 @@
           id: "wave2", label: "Схватка", name: "Короткая волна",
           steps: [
             { k: "in", s: 3, cue: "Вдох", sub: "Короткий, носом" },
-            { k: "out", s: 6, cue: "Выдох «ооо»", sub: "Длинно и низко, только эта схватка" },
+            { k: "out", s: 6, snd: true, cue: "Выдох", sub: "Длинно и низко, только эта схватка" },
           ],
           baby: [
             "Малыш уже входит глубоко в таз. Он поворачивается под ваше дыхание.",
@@ -328,11 +351,11 @@
         id: "push", label: "Во время схватки", name: "Потуга на выдохе",
         steps: [
           { k: "in", s: 3, cue: "Вдох", sub: "Полный, носом" },
-          { k: "push", s: 6, cue: "Вниз «ммм»", sub: "Выдыхайте и направляйте малыша вниз" },
+          { k: "push", s: 6, snd: true, cue: "Вниз", sub: "Выдыхайте и направляйте малыша вниз" },
           { k: "in", s: 2, cue: "Вдох", sub: "Быстро добрать воздух" },
-          { k: "push", s: 6, cue: "Вниз «ааа»", sub: "Подбородок к груди, лицо мягкое" },
+          { k: "push", s: 6, snd: true, cue: "Вниз", sub: "Подбородок к груди, лицо мягкое" },
           { k: "in", s: 2, cue: "Вдох", sub: "Это кислород малышу" },
-          { k: "push", s: 6, cue: "Вниз", sub: "Ещё одна, вы молодец" },
+          { k: "push", s: 6, snd: true, cue: "Вниз", sub: "Ещё одна, вы молодец" },
         ],
         baby: [
           "Потуга на выдохе, по 5–6 секунд, бережнее для малыша, чем долгая задержка дыхания: кислород не успевает упасть.",
@@ -369,7 +392,7 @@
 
   const KEY = "breathing-helper-v1";
   const $ = (id) => document.getElementById(id);
-  let prefs = { stage: "latent", mode: null, voice: false, vibe: true };
+  let prefs = { stage: "latent", mode: null, voice: false, vibe: true, level: 0, sound: "auto" };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) {} };
 
@@ -377,8 +400,51 @@
   const modesOf = (st) => st.modes.concat(REST);
   const modeOf = () => { const list = modesOf(stageOf()); return list.find((m) => m.id === prefs.mode) || list[0]; };
 
+  // Techniques are written at the "средняя" pace; the level stretches or shortens them.
+  const LEVELS = [
+    { name: "Начинающая", note: "Спокойный темп: вдох и выдох без усилий, после выдоха пауза на отдых. Если пока трудно дышать долго — начните отсюда." },
+    { name: "Средняя", note: "Вы уже тренировались: выдох длиннее вдоха, короткая пауза после выдоха." },
+    { name: "Профи", note: "Длинный выдох без пауз. Для тех, кто уверенно держит ритм. Если не хватает воздуха — сдвиньте бегунок влево." },
+  ];
+  const SOUNDS = [
+    { id: "о", text: "«ооо»", tip: "«Ооо» — губы округлые, челюсть мягкая. Самый «раскрывающий» звук: расслабляет горло, а вместе с ним тазовое дно." },
+    { id: "а", text: "«ааа»", tip: "«Ааа» — открытое горло и широкий рот. Хорош, когда схватка сильная и хочется выдохнуть больше." },
+    { id: "у", text: "«ууу»", tip: "«Ууу» — самый низкий гул. Представьте, что звук уходит вниз, к малышу." },
+    { id: "м", text: "«ммм»", tip: "«Ммм» — губы сомкнуты, лицо вибрирует. Успокаивает лучше всего, а малыш чувствует эту вибрацию через ваше тело." },
+    { id: "ш", text: "«шшш»", tip: "«Шшш» — тихий ровный выдох, как будто успокаиваете ребёнка. Помогает замедлиться, если дыхание сбилось." },
+  ];
+  // "ш" holds pushing back, so pushes rotate through the open sounds only
+  const soundFor = (st, n) => {
+    const pool = st.k === "push" ? SOUNDS.filter((x) => x.id !== "ш") : SOUNDS;
+    if (prefs.sound !== "auto") return pool.find((x) => x.id === prefs.sound) || pool[0];
+    return pool[Math.floor(n / 2) % pool.length];
+  };
+  const PAUSE = { k: "pause", cue: "Пауза", sub: "Расслабьтесь, вдох придёт сам" };
+  const levelOf = () => Math.min(2, Math.max(0, +prefs.level || 0));
+  function stepsOf(m) {
+    const lv = levelOf();
+    const out = [];
+    const quick = m.steps.some((st) => st.k === "puff");
+    m.steps.forEach((st, i) => {
+      let d = st.s;
+      if (st.k === "puff") d = st.s * [1.8, 1.3, 1][lv];
+      else if (st.k === "in" && st.s < 3) d = Math.min(3, st.s * [1.8, 1.3, 1][lv]);
+      else if (st.k === "in") d = st.s + [0, 0, 1][lv];
+      else if (st.k === "out" && !quick) d = [Math.min(st.s, 6), st.s, st.s + 2][lv];
+      else if (st.k === "out") d = st.s * [1.3, 1.15, 1][lv];
+      else if (st.k === "push") d = [5, 6, 6][lv];
+      const step = Object.assign({}, st, { s: Math.round(d * 10) / 10 });
+      if (st.snd) step.cue = st.cue + " " + soundFor(st, cycles + i).text;
+      out.push(step);
+      // A resting pause after each long exhale slows the pace without asking for longer breaths
+      const next = m.steps[i + 1] || m.steps[0];
+      if (st.k === "out" && !quick && next.k === "in" && lv < 2) out.push(Object.assign({}, PAUSE, { s: [2, 1][lv] }));
+    });
+    return out;
+  }
+
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const colorOf = (k) => ({ in: "var(--inhale)", out: "var(--accent)", puff: "var(--accent)", push: "var(--wave)" })[k];
+  const colorOf = (k) => ({ in: "var(--inhale)", out: "var(--accent)", puff: "var(--accent)", push: "var(--wave)", pause: "var(--muted)" })[k];
   const haptic = (kind) => {
     if (window.App) return window.App.haptic(kind);
     try { navigator.vibrate && navigator.vibrate(kind === "double" ? [20, 60, 20] : kind === "light" ? 15 : 30); } catch (e) {}
@@ -399,7 +465,11 @@
       `<button type="button" data-id="${m.id}" aria-pressed="${m.id === cur.id}">${m.label}</button>`
     ).join("");
     $("tName").textContent = cur.name;
-    $("tRhythm").textContent = cur.steps.map((st) => (st.k === "in" ? "вдох " : st.k === "push" ? "потуга " : "выдох ") + fmt(st.s)).join(" · ") + " с";
+    const steps = stepsOf(cur);
+    const per = steps.reduce((a, st) => a + st.s, 0);
+    $("tRhythm").textContent = steps.map((st) => (({ in: "вдох ", push: "потуга ", pause: "пауза " })[st.k] || "выдох ") + fmt(st.s)).join(" · ") + " с"
+      + (cur.steps.some((st) => st.k === "push") ? "" : " — " + fmt(Math.round(60 / per * 10) / 10) + " дыханий в минуту");
+    renderLevel(); renderSounds();
   }
   function renderCard() {
     const s = stageOf();
@@ -409,6 +479,24 @@
       <section><h3>Как дышать</h3><p>${s.how}</p></section>
       <section class="avoid"><h3>Чего избегать</h3><ul>${s.avoid.map((a) => `<li>${a}</li>`).join("")}</ul></section>
       <section><h3>Партнёру</h3><p>${s.partner}</p></section>`;
+  }
+  function renderLevel() {
+    const lv = levelOf();
+    $("level").value = lv;
+    $("levelName").textContent = LEVELS[lv].name;
+    $("levelNote").textContent = LEVELS[lv].note;
+    $("level").setAttribute("aria-valuetext", LEVELS[lv].name);
+    document.querySelectorAll(".level-marks span").forEach((el, i) => el.classList.toggle("on", i === lv));
+  }
+  function renderSounds() {
+    const has = modeOf().steps.some((st) => st.snd);
+    $("soundsBox").hidden = !has;
+    if (!has) return;
+    const opts = [{ id: "auto", text: "Менять по очереди" }].concat(SOUNDS);
+    $("sounds").innerHTML = opts.map((o) => `<button type="button" data-id="${o.id}" aria-pressed="${o.id === prefs.sound}">${o.text}</button>`).join("");
+    const cur = SOUNDS.find((x) => x.id === prefs.sound);
+    $("soundTip").textContent = cur ? cur.tip
+      : "Звук меняется каждые два дыхания: «ооо», «ааа», «ууу», «ммм», «шшш». Так легче не зажиматься и находить свой звук. Понравился один — выберите его.";
   }
   let noteIdx = 0;
   function showNote() {
@@ -432,6 +520,7 @@
     if (k === "in") target = 1;
     else if (k === "out") target = .55;
     else if (k === "push") target = .62;
+    else if (k === "pause") target = .55;
     else if (k === "puff") target = Math.max(.55, cur - .12);
     orb.style.transitionDuration = (k === "puff" ? Math.min(s, .5) : s) + "s";
     orb.style.transform = `scale(${target})`;
@@ -449,18 +538,18 @@
   }
 
   function runStep() {
-    const m = modeOf();
-    if (stepIdx >= m.steps.length) {
+    const steps = stepsOf(modeOf());
+    if (stepIdx >= steps.length) {
       stepIdx = 0; cycles++;
       $("breaths").textContent = "Циклов: " + cycles;
       if (cycles % 2 === 0) { noteIdx++; showNote(); }
     }
-    const st = m.steps[stepIdx];
+    const st = steps[stepIdx];
     $("cue").textContent = st.cue;
     $("sub").textContent = st.sub;
     setOrb(st.k, st.s);
     if (st.s >= 1.5) speak(st.cue);
-    if (prefs.vibe) haptic(st.k === "in" ? "soft" : st.k === "push" ? "double" : "light");
+    if (prefs.vibe && st.k !== "pause") haptic(st.k === "in" ? "soft" : st.k === "push" ? "double" : "light");
     const dur = st.s * 1000;
     stepEnd = performance.now() + dur;
     const fill = $("barFill");
@@ -528,6 +617,14 @@
     renderModes(); noteIdx = 0; showNote();
     if (was) start();
   });
+
+  $("sounds").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    prefs.sound = b.dataset.id; save(); renderSounds();
+  });
+
+  // Level applies from the next breath, no restart needed
+  $("level").addEventListener("input", (e) => { prefs.level = +e.target.value; save(); renderModes(); });
 
   $("optVoice").checked = !!prefs.voice;
   $("optVibe").checked = !!prefs.vibe;
