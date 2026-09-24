@@ -1,0 +1,5 @@
+aiogram>=3.13
+anthropic>=1.8
+openai>=1.50
+pydantic>=2.7
+python-dotenv>=1.0
