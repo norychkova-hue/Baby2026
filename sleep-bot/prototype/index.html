@@ -1,0 +1,300 @@
+<title>Сонный помощник</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#EEF1F4; --phone:#FFFFFF; --surface:#F5F7F9; --line:#E1E6EB;
+  --ink:#18212B; --muted:#657080; --faint:#98A2AE;
+  --sleep:#5457C2; --sleep-soft:#E8E9FA;
+  --awake:#C9821E; --awake-soft:#FBF0DE;
+  --feed:#B94F72; --feed-soft:#F8E4EB;
+  --walk:#3F8A55; --walk-soft:#E2F1E6;
+  --chat:#DCE6EE; --bubble:#FFFFFF; --mine:#E1F3D3;
+  --shadow:0 10px 30px rgba(24,33,43,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#0C1015; --phone:#151B23; --surface:#1C2430; --line:#28323F;
+    --ink:#E4E9EF; --muted:#9AA5B3; --faint:#6B7684;
+    --sleep:#9A9DF2; --sleep-soft:#262A4A;
+    --awake:#E7AA52; --awake-soft:#3A2D18;
+    --feed:#E58CAA; --feed-soft:#3C2230;
+    --walk:#7CC592; --walk-soft:#1C3325;
+    --chat:#0F151C; --bubble:#1C2430; --mine:#2A3F2A;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#0C1015; --phone:#151B23; --surface:#1C2430; --line:#28323F;
+  --ink:#E4E9EF; --muted:#9AA5B3; --faint:#6B7684;
+  --sleep:#9A9DF2; --sleep-soft:#262A4A;
+  --awake:#E7AA52; --awake-soft:#3A2D18;
+  --feed:#E58CAA; --feed-soft:#3C2230;
+  --walk:#7CC592; --walk-soft:#1C3325;
+  --chat:#0F151C; --bubble:#1C2430; --mine:#2A3F2A;
+  --shadow:0 10px 30px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.45;padding:28px 16px 48px;font-variant-numeric:tabular-nums}
+.intro{max-width:1160px;margin:0 auto 22px;display:grid;gap:6px}
+.intro h1{font-size:26px;font-weight:700;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.intro p{margin:0;color:var(--muted);max-width:68ch}
+.board{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px;align-items:start}
+.col{display:grid;gap:10px;justify-items:center}
+.cap{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.phone{width:100%;max-width:360px;background:var(--phone);border-radius:28px;box-shadow:var(--shadow);
+  border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;min-height:640px}
+.tg{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.tg b{font-weight:600}.tg span{color:var(--muted);font-size:12px}
+.ava{width:34px;height:34px;border-radius:50%;background:var(--sleep-soft);display:grid;place-items:center;font-size:17px}
+.screen{padding:20px 18px 18px;display:flex;flex-direction:column;gap:18px;flex:1}
+.age{font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+.state{display:grid;gap:4px}
+.state .now{font-size:30px;font-weight:700;letter-spacing:-.015em;line-height:1.15}
+.state .next{font-size:16px;color:var(--ink)}
+.state .why{font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:2px;background:var(--c)}
+.big{border:0;border-radius:22px;padding:26px 16px;font:inherit;font-size:21px;font-weight:600;cursor:pointer;
+  background:var(--c);color:#fff;width:100%;transition:transform .12s}
+.big:active{transform:scale(.98)}
+:root[data-theme="dark"] .big{color:#10151B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .big{color:#10151B}}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sec{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:14px 10px;font:inherit;font-size:15px;
+  font-weight:500;color:var(--ink);cursor:pointer;display:flex;gap:8px;align-items:center;justify-content:center}
+.sec.on{background:var(--walk-soft);border-color:transparent;color:var(--walk)}
+.sec:focus-visible,.big:focus-visible,.chip:focus-visible,.more:focus-visible{outline:3px solid var(--sleep);outline-offset:2px}
+.toast{background:var(--surface);border-radius:14px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.toast .t{flex:1 1 100%;color:var(--muted)}
+.chip{border:1px solid var(--line);background:var(--phone);border-radius:999px;padding:5px 11px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}
+.chip.undo{margin-left:auto;color:var(--feed)}
+.today{margin-top:auto;display:flex;gap:10px;justify-content:space-between;align-items:center;font-size:14px;color:var(--muted);
+  border-top:1px solid var(--line);padding-top:14px}
+.more{white-space:nowrap;background:none;border:0;color:var(--sleep);font:inherit;font-weight:600;cursor:pointer;padding:4px}
+
+/* подробнее */
+.h2{font-size:18px;font-weight:700;margin:0}
+.tl{display:grid;gap:6px}
+.bar{position:relative;height:30px;border-radius:8px;background:var(--awake-soft);overflow:hidden}
+.bar i{position:absolute;top:0;bottom:0;background:var(--sleep);opacity:.9}
+.bar i.plan{background:repeating-linear-gradient(135deg,var(--sleep) 0 4px,transparent 4px 8px);opacity:.5}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:3px;border-radius:2px;background:var(--feed)}
+.bar .nowline{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--faint)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.stats{display:grid;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.stat{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 12px;border-top:1px solid var(--line)}
+.stat:first-child{border-top:0}
+.stat .k{font-size:14px}.stat .v{font-weight:600;text-align:right}
+.stat .n{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.ok{color:var(--walk)}
+.card{border-radius:14px;padding:12px 14px;background:var(--c-soft);display:grid;gap:4px;font-size:14px}
+.card strong{font-size:15px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.w{display:flex;align-items:baseline;gap:8px}
+.w .big-n{font-size:22px;font-weight:700}
+
+/* чат */
+.chat{background:var(--chat);flex:1;padding:14px 10px;display:flex;flex-direction:column;gap:10px}
+.msg{background:var(--bubble);border-radius:14px 14px 14px 4px;padding:9px 12px;max-width:88%;font-size:14px;display:grid;gap:6px}
+.msg .time{font-size:11px;color:var(--faint);justify-self:end}
+.msg.me{align-self:flex-end;background:var(--mine);border-radius:14px 14px 4px 14px}
+.inline{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:88%}
+.inline span{background:color-mix(in srgb,var(--bubble) 70%,transparent);border-radius:10px;padding:7px;text-align:center;font-size:13px;font-weight:500;color:var(--sleep)}
+.kbd{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;border-top:1px solid var(--line);background:var(--surface)}
+.kbd span{background:var(--phone);border-radius:10px;padding:10px 6px;text-align:center;font-size:13px;box-shadow:0 1px 0 var(--line)}
+.kbd span.wide{grid-column:1/-1;color:var(--sleep);font-weight:600}
+.notes{max-width:1160px;margin:28px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;color:var(--muted);font-size:14px}
+.notes b{color:var(--ink);display:block;margin-bottom:2px}
+@media (prefers-reduced-motion: reduce){.big{transition:none}}
+</style>
+
+<header class="intro">
+  <h1>Сонный помощник — как это будет выглядеть</h1>
+  <p>Макет Mini App и чата бота на примере малыша 12 дней. Главный экран можно нажимать: кнопки меняют состояние и показывают, как исправить время или отменить запись.</p>
+</header>
+
+<main class="board">
+  <!-- 1. Главный экран -->
+  <section class="col">
+    <div class="cap">1 · Главный экран</div>
+    <div class="phone">
+      <div class="tg"><div class="ava">🌙</div><div><b>Сонный помощник</b><br><span>мини-приложение</span></div></div>
+      <div class="screen">
+        <div class="age"><span>12 дней</span><span id="clock">13:05</span></div>
+        <div class="state" id="state"></div>
+        <button class="big" id="bigBtn" type="button"></button>
+        <div class="toast" id="toast" hidden>
+          <span class="t" id="toastText"></span>
+          <button class="chip" type="button" data-shift="5">−5</button>
+          <button class="chip" type="button" data-shift="10">−10</button>
+          <button class="chip" type="button" data-shift="15">−15 мин</button>
+          <button class="chip undo" type="button" id="undo">Отменить</button>
+        </div>
+        <div class="row">
+          <button class="sec" type="button" id="feedBtn">🤱 Кормление</button>
+          <button class="sec" type="button" id="walkBtn">🚶 Прогулка</button>
+        </div>
+        <div class="today"><span id="todayLine">Сегодня: сон 5 ч 20 мин · 5 кормлений</span><button class="more" type="button">Подробнее ›</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Подробнее -->
+  <section class="col">
+    <div class="cap">2 · «Подробнее» — только если захочется</div>
+    <div class="phone">
+      <div class="tg"><div class="ava">🌙</div><div><b>Подробнее</b><br><span>сутки с 7:40</span></div></div>
+      <div class="screen">
+        <div class="tl">
+          <h2 class="h2">Сегодня</h2>
+          <div class="bar" aria-label="Лента суток: сон, бодрствование, кормления">
+            <!-- шкала 7:00–23:00 = 16 ч; 1 ч = 6.25% -->
+            <i style="left:11.5%;width:10.4%"></i>
+            <i style="left:28.1%;width:13.5%"></i>
+            <i style="left:45.3%;width:7.8%"></i>
+            <i class="plan" style="left:57.8%;width:9.4%"></i>
+            <i class="plan" style="left:75%;width:8.3%"></i>
+            <b style="left:5.2%"></b><b style="left:23.4%"></b><b style="left:39.6%"></b><b style="left:53.1%"></b>
+            <b style="left:68.7%;opacity:.5"></b>
+            <span class="nowline" style="left:38%"></span>
+          </div>
+          <div class="ticks"><span>7</span><span>10</span><span>13</span><span>16</span><span>19</span><span>22</span></div>
+          <div class="legend"><span style="--c:var(--sleep)">сон</span><span style="--c:var(--awake-soft)">бодрствование</span><span style="--c:var(--feed)">кормление</span><span style="--c:var(--faint)">пунктир — план</span></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span class="k">Сон за сутки</span><span class="v">16 ч 10 мин</span><span class="n">норма 16–18 ч · <span class="ok">в норме</span></span></div>
+          <div class="stat"><span class="k">Бодрствование за раз</span><span class="v">35–50 мин</span><span class="n">норма 30–50 мин · <span class="ok">в норме</span></span></div>
+          <div class="stat"><span class="k">Кормления</span><span class="v">9 за сутки</span><span class="n">самый длинный перерыв 3 ч 10 мин</span></div>
+          <div class="stat"><span class="k">На улице</span><span class="v">1 ч 20 мин</span><span class="n">спал в коляске 55 мин</span></div>
+        </div>
+
+        <div class="card" style="--c-soft:var(--feed-soft)">
+          <strong>Вес</strong>
+          <div class="w"><span class="big-n">3 390 г</span><span>при рождении 3 420 г</span></div>
+          <span>Почти вернулся к весу при рождении. Пока будим на кормление каждые 3 ч, ночью — если спит дольше 4 ч.</span>
+        </div>
+
+        <div class="links">
+          <button class="chip" type="button">Безопасный сон</button>
+          <button class="chip" type="button">Напоминания</button>
+          <button class="chip" type="button">Выгрузить всё</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Чат бота -->
+  <section class="col">
+    <div class="cap">3 · Чат бота: только важное</div>
+    <div class="phone">
+      <div class="tg"><div class="ava">🌙</div><div><b>Сонный помощник</b><br><span>бот</span></div></div>
+      <div class="chat">
+        <div class="msg">
+          <span><b>Доброе утро.</b> За сутки: сон 16 ч 10 мин (норма 16–18), 9 кормлений.</span>
+          <span>Совет на сегодня: днём побольше света и хотя бы одна прогулка — так малыш быстрее отличит день от ночи.</span>
+          <span class="time">7:45</span>
+        </div>
+        <div class="msg">
+          <span>Через 15 мин пора кормить — прошло почти 3 ч.</span>
+          <span class="time">14:05</span>
+        </div>
+        <div class="msg">
+          <span><b>Пора будить на кормление.</b> Вес ещё не вернулся к весу при рождении.</span>
+          <span class="time">14:20</span>
+        </div>
+        <div class="inline"><span>Покормила</span><span>Ещё 15 мин</span></div>
+        <div class="msg me"><span>🤱 Кормление</span><span class="time">14:24</span></div>
+        <div class="msg">
+          <span>Записала 14:24. Следующее ≈ 17:25.</span>
+          <span class="time">14:24</span>
+        </div>
+      </div>
+      <div class="kbd">
+        <span>😴 Уснул</span><span>🤱 Кормление</span>
+        <span class="wide">Открыть приложение</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="notes">
+  <div><b>Одно нажатие</b>Время ставится само, дневной или ночной сон — тоже. Ничего заполнять не нужно.</div>
+  <div><b>Ошибся — не страшно</b>После каждой записи: −5 / −10 / −15 мин или «Отменить».</div>
+  <div><b>Три напоминания</b>Кормление, «скоро укладывать» и утренняя сводка с одним советом. Остальное — выключено.</div>
+  <div><b>Ночью тихо</b>Тёмная тема следует Telegram. Звук ночью — только если нужно будить на кормление.</div>
+</section>
+
+<script>
+(function(){
+  const NOW = 13*60+5;                 // 13:05 в примере
+  const FEED_EVERY = 180;              // режим «контроль набора»: 3 ч
+  const WW = 45;                       // бодрствование для 0–1 мес: 30–50 мин
+  let s = {asleep:true, since:11*60+55, lastFeed:11*60+20, walk:false, walkSince:0, sleepMin:320, feeds:5};
+  let prev = null;
+
+  const hm = m => { m=((m%1440)+1440)%1440; return Math.floor(m/60)+':'+String(m%60).padStart(2,'0'); };
+  const dur = m => m<60 ? m+' мин' : Math.floor(m/60)+' ч'+(m%60?' '+(m%60)+' мин':'');
+  const $ = id => document.getElementById(id);
+
+  function render(){
+    const feedAt = s.lastFeed + FEED_EVERY;
+    const st = $('state'), big = $('bigBtn');
+    if(s.asleep){
+      const place = s.walk ? ' в коляске' : '';
+      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--sleep)"></span>Спит ${dur(NOW-s.since)}${place}</div>
+        <div class="next">Будить ≈ ${hm(feedAt)} — кормление</div>
+        <div class="why">Прошлое кормление в ${hm(s.lastFeed)}, каждые 3 ч, пока вес не вернётся</div>`;
+      big.textContent = '☀️ Проснулся';
+      big.style.setProperty('--c','var(--awake)');
+    } else {
+      const put = s.since + WW;
+      st.innerHTML = `<div class="now"><span class="dot" style="--c:var(--awake)"></span>Не спит ${dur(Math.max(0,NOW-s.since))}</div>
+        <div class="next">Укладывать ≈ ${hm(put)}</div>
+        <div class="why">или раньше, если зевает, трёт глаза, «зависает». Кормление ≈ ${hm(feedAt)}</div>`;
+      big.textContent = '😴 Уснул';
+      big.style.setProperty('--c','var(--sleep)');
+    }
+    $('walkBtn').classList.toggle('on', s.walk);
+    $('walkBtn').textContent = s.walk ? `🚶 Гуляем ${dur(Math.max(0,NOW-s.walkSince))}` : '🚶 Прогулка';
+    $('todayLine').textContent = `Сегодня: сон ${dur(s.sleepMin)} · ${s.feeds} кормл.`;
+  }
+
+  function log(text, change){
+    prev = JSON.parse(JSON.stringify(s));
+    change();
+    $('toastText').textContent = text;
+    $('toast').hidden = false;
+    render();
+  }
+
+  $('bigBtn').addEventListener('click', ()=>{
+    if(s.asleep) log('Записано: проснулся в 13:05', ()=>{ s.sleepMin += NOW-s.since; s.asleep=false; s.since=NOW; });
+    else log('Записано: уснул в 13:05', ()=>{ s.asleep=true; s.since=NOW; });
+  });
+  $('feedBtn').addEventListener('click', ()=> log('Записано: кормление в 13:05', ()=>{ s.lastFeed=NOW; s.feeds++; }));
+  $('walkBtn').addEventListener('click', ()=>{
+    if(s.walk) log('Прогулка закончилась в 13:05', ()=>{ s.walk=false; });
+    else log('Прогулка началась в 13:05. Кормление ≈ '+hm(s.lastFeed+FEED_EVERY), ()=>{ s.walk=true; s.walkSince=NOW; });
+  });
+  document.querySelectorAll('[data-shift]').forEach(b=>b.addEventListener('click',()=>{
+    const d=+b.dataset.shift, t=hm(NOW-d);
+    const txt=$('toastText').textContent;
+    if(/кормление в/.test(txt)) s.lastFeed=NOW-d;
+    else if(/Прогулка началась/.test(txt)) s.walkSince=NOW-d;
+    else if(/уснул|проснулся/.test(txt)) s.since=NOW-d;
+    $('toastText').textContent = txt.replace(/\d{1,2}:\d{2}/, t);
+    render();
+  }));
+  $('undo').addEventListener('click',()=>{ if(prev){ s=prev; prev=null; } $('toast').hidden=true; render(); });
+
+  render();
+})();
+</script>
