@@ -129,7 +129,23 @@ def add_week(summary: str, focus: str) -> None:
         conn.execute("INSERT INTO weeks (ts, summary, focus) VALUES (?, ?, ?)", (now().isoformat(), summary, focus))
 
 
-def current_focus() -> str | None:
+def focus_index() -> int:
+    """Номер текущего фокуса недели в кодексе (с нуля)."""
+    return int(get_profile().get("focus_index", 0))
+
+
+def first_entry_day() -> str | None:
     with connect() as conn:
-        row = conn.execute("SELECT focus FROM weeks ORDER BY id DESC LIMIT 1").fetchone()
-    return row["focus"] if row else None
+        row = conn.execute("SELECT MIN(ts) FROM entries").fetchone()
+    return row[0][:10] if row[0] else None
+
+
+def belly_complaints(days: int = 7) -> dict[str, int]:
+    """Сколько раз за период живот был не в порядке: {"изжога": 2, ...}."""
+    since = (now() - timedelta(days=days)).isoformat()
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT belly, COUNT(*) FROM entries WHERE ts >= ? AND belly IS NOT NULL AND belly != 'комфорт'"
+            " GROUP BY belly", (since,)
+        ).fetchall()
+    return {r[0]: r[1] for r in rows}

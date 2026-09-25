@@ -9,6 +9,7 @@ from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import Message
 
+import codex
 import coach
 import db
 import stt
@@ -20,13 +21,16 @@ HELP = """\
 Привет. Я помогаю мягко вернуться к своему весу и беречь живот. Калории не считаем.
 
 Просто рассказывай — голосом или текстом — что ела, как себя чувствовала, гуляла ли.
-Например: «Обед: суп и курица, ела спокойно, голод был 6, сейчас сытость приятная, живот ок».
-Я запишу и отвечу. Вечером напомню о себе, по воскресеньям подведу итог недели.
+Например: «Обед: суп и курица, ела без телефона, голод был 6, сейчас сытость приятная, живот ок».
+Я запишу и отвечу, опираясь на твой кодекс — твои же принципы из заметок.
+Первые две недели расспрашиваю про ощущения, потом становлюсь тише: вечером один вопрос про фокус недели.
+По воскресеньям — итог недели.
 
 Команды:
 /weight 68.5 — вес (лучше раз в неделю, утром)
 /waist 78 — талия в см (раз в месяц)
 /week — итог недели и фокус на следующую
+/focus — мой кодекс и фокус недели (/focus 3 — выбрать пункт самой)
 /undo — удалить последнюю запись
 /birth 2026-11-20 — дата родов
 /settings — настройки: кормление грудью, скрывать цифры веса
@@ -43,6 +47,13 @@ REMIND_DONE = [
     "Как ты сейчас? Если хочется — расскажи, как прошёл вечер и как живот.",
     "Вечерний обход. Как самочувствие, как живот после ужина?",
     "Как прошёл вечер? Чай в итоге выпит горячим или по классике — остывшим?",
+]
+
+# После двух недель наблюдения бот спрашивает вечером только про фокус недели.
+REMIND_FOCUS = [
+    "Как сегодня с «{focus}»? Хватит одного слова.",
+    "Вечерняя сверка с кодексом: «{focus}» — получилось сегодня?",
+    "Короткий вопрос дня: как там «{focus}»? Можно ответить смайликом.",
 ]
 
 TOGGLES = {
@@ -134,8 +145,33 @@ async def _week_text() -> str:
     except Exception:
         log.exception("week review failed")
         return "Не получилось подвести итог — попробуй /week чуть позже."
-    db.add_week(result["summary"], result["focus"])
-    return f"{result['summary']}\n\nФокус на неделю: {result['focus']}"
+    index = db.focus_index()
+    if result["focus_settled"]:
+        index = (index + 1) % len(codex.CODEX)
+        db.set_profile("focus_index", str(index))
+        head = "Прошлый фокус прижился — берём следующий пункт кодекса."
+    else:
+        head = "Оставляем тот же фокус ещё на неделю, привычке нужно время."
+    focus = codex.title(index)
+    db.add_week(result["summary"], focus)
+    return f"{result['summary']}\n\n{head}\nФокус на неделю: {focus}"
+
+
+@router.message(Command("focus"))
+async def focus(message: Message, command: CommandObject) -> None:
+    if command.args:
+        try:
+            index = int(command.args.strip()) - 1
+            codex.CODEX[index]
+            if index < 0:
+                raise IndexError
+        except (ValueError, IndexError):
+            await message.answer(f"Напиши номер пункта от 1 до {len(codex.CODEX)}, например: /focus 2")
+            return
+        db.set_profile("focus_index", str(index))
+    current = db.focus_index()
+    lines = [("👉 " if i == current else "") + f"{i + 1}. {title} — {text}" for i, (title, text) in enumerate(codex.CODEX)]
+    await message.answer("Твой кодекс:\n\n" + "\n\n".join(lines) + f"\n\nФокус недели: {codex.title(current)}")
 
 
 @router.message(F.voice)
@@ -191,10 +227,14 @@ async def reminders(bot: Bot) -> None:
             due = (now.hour, now.minute) >= (hh, mm) and now.hour < 23
             if due and p.get("last_remind") != today:
                 db.set_profile("last_remind", today)
-                if db.count_today():
-                    await bot.send_message(ALLOWED_USER_ID, random.choice(REMIND_DONE))
+                if not coach.observing():
+                    # Тихий режим: один вопрос про фокус недели вместо расспросов.
+                    text = random.choice(REMIND_FOCUS).format(focus=codex.title(db.focus_index()))
+                elif db.count_today():
+                    text = random.choice(REMIND_DONE)
                 else:
-                    await bot.send_message(ALLOWED_USER_ID, random.choice(REMIND_EMPTY))
+                    text = random.choice(REMIND_EMPTY)
+                await bot.send_message(ALLOWED_USER_ID, text)
                 if now.weekday() == 6:
                     await bot.send_message(ALLOWED_USER_ID, await _week_text())
         except Exception:

@@ -4,6 +4,7 @@ from datetime import date
 
 from anthropic import AsyncAnthropic
 
+import codex
 import db
 import prompts
 from config import CLAUDE_MODEL
@@ -20,7 +21,7 @@ LOG_SCHEMA = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "kind": {"type": "string", "enum": ["meal", "movement", "sleep", "water", "wellbeing", "stool"]},
+                    "kind": {"type": "string", "enum": ["meal", "movement", "sleep", "wellbeing", "stool"]},
                     "tags": {"type": "array", "items": {"type": "string"}},
                     "note": {"type": "string"},
                     "hunger": NULLABLE_INT,
@@ -40,13 +41,22 @@ LOG_SCHEMA = {
 
 WEEK_SCHEMA = {
     "type": "object",
-    "properties": {"summary": {"type": "string"}, "focus": {"type": "string"}},
-    "required": ["summary", "focus"],
+    "properties": {"summary": {"type": "string"}, "focus_settled": {"type": "boolean"}},
+    "required": ["summary", "focus_settled"],
     "additionalProperties": False,
 }
 
 
 WEEKDAYS = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
+
+
+OBSERVE_DAYS = 14
+
+
+def observing() -> bool:
+    """Первые две недели — режим наблюдения: бот подробно расспрашивает про ощущения. Потом — тихий режим."""
+    first = db.first_entry_day()
+    return first is None or (db.now().date() - date.fromisoformat(first)).days < OBSERVE_DAYS
 
 
 class CoachError(Exception):
@@ -62,8 +72,10 @@ def _context(days: int) -> str:
         weeks = (now.date() - date.fromisoformat(birth)).days // 7
         lines.append(f"Дата родов: {birth} ({weeks} нед. назад)." if weeks >= 0 else f"Роды ожидаются {birth}.")
     lines.append(f"Кормит грудью: {p['breastfeeding']}.")
-    if focus := db.current_focus():
-        lines.append(f"Фокус этой недели: {focus}")
+    lines.append(f"Фокус этой недели (пункт кодекса): {codex.title(db.focus_index())}")
+    lines.append("Режим: наблюдение (первые две недели)." if observing() else "Режим: тихий.")
+    if complaints := db.belly_complaints(7):
+        lines.append(f"Жалобы на живот за 7 дней: {complaints} — всего {sum(complaints.values())}.")
 
     weights = db.measures("weight")
     if weights:
@@ -103,5 +115,5 @@ async def log_report(text: str) -> dict:
 
 
 async def week_review() -> dict:
-    """Возвращает {"summary": str, "focus": str}."""
+    """Возвращает {"summary": str, "focus_settled": bool}."""
     return await _ask(prompts.WEEK_TASK, _context(days=7), WEEK_SCHEMA, effort="medium")
