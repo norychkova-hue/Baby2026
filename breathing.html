@@ -114,6 +114,24 @@ body{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
 .dock #ctx{flex:1}
 .dock-live{font-size:12px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums;margin:0 0 6px;max-width:760px;margin-inline:auto}
 @media (max-width:600px){.techs{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;max-width:100%;width:100%;padding-bottom:4px;scrollbar-width:thin}.tech{flex:0 0 auto;white-space:nowrap}}
+.poses{display:grid;gap:10px}
+.poses-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.pose{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:4px;align-content:start}
+.pose h3{margin:0;font-size:16px;font-weight:600}
+.pose p{margin:0;font-size:14px}
+.pose .why{color:var(--ink)}
+.pose .how{color:var(--muted)}
+.pose .note{font-size:13px;color:var(--warn)}
+.poses-intro{margin:0;color:var(--muted);font-size:14px}
+.dock-baby{max-width:760px;margin:0 auto 8px;background:var(--gold-soft);border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.4;display:grid;gap:2px}
+.dock-baby b{font-weight:600}
+.dock-baby{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dock-baby:not(.open) #dockBabyText{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.dock-baby:not(.open) .dp .pw{display:none}
+.dock-baby .more{font-size:12px;color:var(--muted)}
+.dock-baby.open .more{display:none}
+.dock-baby .dp{color:var(--muted)}
+@media (max-height:600px){.dock-baby:not(.open) .dp{display:none}}
 footer{font-size:13px;color:var(--muted);max-width:65ch}
 @media (prefers-reduced-motion:reduce){.orb{transition-duration:.01s!important}}
 </style>
@@ -163,6 +181,12 @@ footer{font-size:13px;color:var(--muted);max-width:65ch}
     <p class="nudge" id="nudge" hidden></p>
   </section>
 
+  <section class="poses" id="posesBox">
+    <h2 style="margin:0;font-family:var(--display);font-size:20px">Позы, чтобы малышу было легче двигаться</h2>
+    <p class="poses-intro">Меняйте позу, слушайте тело. Подойдёт та, в которой легче. Тренируйте позы заранее, вместе с дыханием.</p>
+    <div class="poses-grid" id="posesList"></div>
+  </section>
+
   <div class="grid2">
     <section class="card">
       <h2>Как дышать</h2>
@@ -194,6 +218,37 @@ footer{font-size:13px;color:var(--muted);max-width:65ch}
       </table>
     </div>
     <button class="linkish" id="clearLog">Очистить записи</button>
+  </section>
+
+  <section class="card">
+    <h2>Массаж и точки обезболивания</h2>
+    <p class="hint">Давите уверенно и точно на точку. Как часто и как сильно — решает сама женщина, по ощущениям. Выучите точки и тренируйтесь с 37-й недели слабым нажатием, в родах — сильнее.</p>
+    <ul>
+      <li><b>Крестец.</b> Во время схватки давите, растирайте, растягивайте кончиками пальцев, костяшками, ладонью или основанием кулака, одной или двумя руками. Это блокирует передачу болевого импульса. Можно с кремом или маслом.</li>
+      <li><b>Низ живота.</b> Поглаживайте ладонями с двух сторон или по очереди, от косточек к лобку и обратно, или по боковым стенкам матки.</li>
+      <li><b>Внутренняя сторона бедра</b> (лёжа на боку). Прижмите ладонь и водите без отрыва, «как утюгом», от паха до колена и обратно.</li>
+      <li><b>Лёгкие поглаживания</b> плеч, спины, головы. Они запускают выработку эндорфинов, и схватки проживаются мягче.</li>
+      <li><b>Растирание стоп.</b> Ноги в родах часто холодные, даже если телу жарко. Растирание расслабляет и даёт сил.</li>
+      <li><b>Точка на середине подошвы</b> (в углублении). Считается полезной в переходной фазе перед потугами, помогает успокоиться и снизить тревогу.</li>
+      <li><b>Точка между большим и указательным пальцем</b> (в ямке). Усиливает схватки и обезболивает. Используют, чтобы ускорить начало родов, и перед потугами.</li>
+      <li><b>Точка над лодыжкой изнутри</b>, примерно на ладонь выше косточки. Применяют при слабых схватках и перенашивании: помогает раскрытию и обезболивает. Если точка чувствительная, значит, вы её нашли.</li>
+      <li><b>Точка над пяткой</b> сбоку от лодыжки, на обеих ногах. Применяют при перенашивании, слабых схватках и задержке плаценты.</li>
+      <li><b>Точка сверху на стопе.</b> Применяют, когда женщина устала, вместе с точкой на кисти.</li>
+      <li>Можно сжимать в ладонях расчёску-гребешок и нажимать на кончики пальцев. Это отвлекает и придаёт сил.</li>
+    </ul>
+    <p class="hint">Между схватками нужны расслабление и отдых. Не ждите боли и не бойтесь её.</p>
+  </section>
+
+  <section class="card">
+    <h2>Упражнение «Поверь в свои силы»</h2>
+    <p class="hint">Когда не хватает поддержки, накатывает неуверенность или одиночество.</p>
+    <ol>
+      <li>Сядьте, расслабьтесь и представьте человека, с которым вам спокойно и уверенно. Из детства или из недавнего — неважно.</li>
+      <li>Закройте глаза, увидьте его перед собой в деталях. Ненадолго станьте им и посмотрите на себя его глазами.</li>
+      <li>Скажите себе от его имени: «Я с тобой, у тебя всё получится!» или «Ты сильная, я тобой горжусь, ты справишься!»</li>
+      <li>Вернитесь в своё тело, обнимите себя и услышьте эти слова.</li>
+      <li>Побудьте в этом состоянии и запомните его. Повторяйте практику, когда нужна опора.</li>
+    </ol>
   </section>
 
   <section class="card">
@@ -231,6 +286,7 @@ footer{font-size:13px;color:var(--muted);max-width:65ch}
   </section>
 
   <div class="dock" role="region" aria-label="Главные кнопки">
+    <div class="dock-baby" id="dockBaby" hidden aria-live="polite" role="button" tabindex="0" aria-expanded="false"><span id="dockBabyText"></span><span class="dp" id="dockPose"></span><span class="more">Нажмите, чтобы прочитать целиком</span></div>
     <p class="dock-live" id="dockLive" hidden></p>
     <div class="dock-in">
       <button class="btn" id="play">Дышать</button>
@@ -238,7 +294,7 @@ footer{font-size:13px;color:var(--muted);max-width:65ch}
     </div>
   </div>
 
-  <footer>Техники взяты из уроков 7 и 9 курса «Лёгкие роды без страха», пояснения о малыше основаны на физиологии родов и рекомендациях ВОЗ. Приложение не заменяет медицинскую помощь: если врач или акушерка просят дышать или тужиться по-другому, делайте, как говорят они. Они видят КТГ и сердцебиение малыша. Записи о схватках хранятся только на этом устройстве.</footer>
+  <footer>Техники взяты из уроков 7 и 9 курса «Лёгкие роды без страха»; позы, массаж, точки и упражнение «Поверь в свои силы» — из материалов школы «Лёгкие роды»; пояснения о малыше основаны на физиологии родов и рекомендациях ВОЗ. Приложение не заменяет медицинскую помощь: если врач или акушерка просят дышать или тужиться по-другому, делайте, как говорят они. Они видят КТГ и сердцебиение малыша. Записи о схватках хранятся только на этом устройстве.</footer>
 </div>
 
 <script>
@@ -274,6 +330,19 @@ const LEVELS = [
   {name:'Средний', desc:'Выдох до 7 секунд, короткая пауза, короткие выдохи чуть быстрее. Для тех, кто уже тренировался несколько раз и голова не кружится.'},
   {name:'Профи', desc:'Полный ритм курса: выдох на 8, без пауз, «собачка» в обычном темпе. Для тех, кто тренируется каждый день и легко дышит 10–15 минут.'}
 ];
+
+// Poses from the school's "Позы в схватках" handout
+const POSES = {
+  vert:{name:'Любые вертикальные', how:'Стоя с наклоном вперёд на опору или спиной к стене с мячом. Добавляйте покачивания и круговые движения бёдрами.', why:'Хороши при слабых схватках, а также при полном раскрытии, пока головка малыша опускается.'},
+  all4:{name:'На четвереньках', how:'На локтях или на ладонях, можно лечь грудью на мяч.', why:'Даёт подвижность тазовым костям и помогает родовому каналу максимально расшириться.', note:'Подходит всем, кроме женщин с перерастянутой брюшной стенкой.'},
+  support:{name:'С опорой для груди и головы', how:'Стоя на коленях, грудью и головой на мяч, стул или кровать.', why:'Похожа на позу на четвереньках, но даёт больше возможности отдохнуть.'},
+  sit:{name:'Сидя', how:'На мяче или на кровати, руками и грудью на мяч или спинку кровати.', why:'Помогает малышу опускаться и даёт маме отдохнуть.', note:'На полном раскрытии сидеть нельзя, даже на мяче, — только на крестце.'},
+  side:{name:'Лёжа на боку, колени широко', how:'Верхнее колено подтяните к груди или положите на подушку.', why:'Подходит при активных схватках и при неправильном вставлении головки малыша.', note:'На какой бок лечь, зависит от положения головки малыша — уточните у врача или акушерки.'},
+  back:{name:'Полусидя или полулёжа', how:'Спиной на мяч или на приподнятое изголовье кровати, колени согнуты.', why:'Подойдёт при широком ёмком тазе и активных схватках.'},
+  asym:{name:'Вертикально, ноги несимметрично', how:'Одна нога согнута и выставлена вперёд или в сторону, руки опираются на колено или пол.', why:'Полезна при неправильном вставлении головки (асинклитизме).'},
+  squat:{name:'На корточках', how:'Опирайтесь на всю стопу, руками — на стул или кровать. Под пятки можно подложить что-то для устойчивости.', why:'Помогает малышу активнее продвигаться по родовым путям. Часто используют в первых родах и при узком тазе.'}
+};
+const STAGE_POSES = { early:['vert','all4','support','sit','side','back','asym'], urge:['vert','all4','support','side'], push:['squat','side','back','all4'], crown:[], rest:['support','sit','side'], after:[] };
 
 const STAGES = [
  { id:'early', n:'1', chip:'Схватки', name:'Схватки: раскрытие', when:'Первый период родов. На схватке дышите, между схватками отдыхайте и расслабляйтесь. Глаза лучше закрыть.',
@@ -413,10 +482,37 @@ function setStage(id,user){
   $('babyFacts').innerHTML=s.facts.map(f=>`<li>${f}</li>`).join('');
   $('howList').innerHTML=s.how.map(f=>`<li>${f}</li>`).join('');
   $('avoidList').innerHTML=s.avoid.map(f=>`<li>${f}</li>`).join('');
+  renderPoses();
   if(user) $('nudge').hidden=true;
   restart();
   const btn=[...$('stages').children].find(b=>b.dataset.id===id); if(btn&&user) btn.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
+function renderPoses(){
+  const ids=STAGE_POSES[stage]||[];
+  $('posesBox').hidden=!ids.length;
+  $('posesList').innerHTML=ids.map(id=>{const p=POSES[id]; return `<article class="pose"><h3>${p.name}</h3><p class="why">${p.why}</p><p class="how">${p.how}</p>${p.note?`<p class="note">${p.note}</p>`:''}</article>`}).join('');
+}
+// "Малыш сейчас": a new note on every contraction, plus a pose to try
+let babyTimer=null;
+function showDockBaby(text,poseId){
+  $('dockBabyText').innerHTML='<b>Малыш сейчас:</b> '+text;
+  const p=poseId&&POSES[poseId];
+  $('dockPose').innerHTML=p?`Поза: ${p.name.toLowerCase()}<span class="pw"> — ${p.why.charAt(0).toLowerCase()+p.why.slice(1)}</span>`:'';
+  $('dockBaby').classList.remove('open'); $('dockBaby').setAttribute('aria-expanded','false');
+  $('dockPose').hidden=!p;
+  $('dockBaby').hidden=false; fitDock();
+  clearTimeout(babyTimer);
+}
+function hideDockBaby(after){ clearTimeout(babyTimer); babyTimer=setTimeout(()=>{$('dockBaby').hidden=true; fitDock();},after||0); }
+function babyForContraction(){
+  const s=curStage(), notes=[s.lead].concat(s.facts), n=log.length, ids=STAGE_POSES[s.id]||[];
+  showDockBaby(notes[n%notes.length], ids.length?ids[n%ids.length]:null);
+}
+function toggleDockBaby(){ const d=$('dockBaby'), o=d.classList.toggle('open'); d.setAttribute('aria-expanded',o); fitDock(); }
+$('dockBaby').onclick=toggleDockBaby;
+$('dockBaby').onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleDockBaby(); } };
+function fitDock(){ document.body.style.paddingBottom=(document.querySelector('.dock').offsetHeight+16)+'px'; }
+addEventListener('resize',fitDock);
 function restart(){ stepIdx=0; cycles=0; if(running){clearTimeout(stepTimer); runStep();} }
 
 function tone(kind){
@@ -517,6 +613,7 @@ $('ctx').onclick=()=>{
     if(stage==='rest' || stage==='after') setStage(workStage||'early');
     workStage=stage; store.set('workStage2',workStage);
     $('nudge').hidden=true;
+    babyForContraction();
     if(!running) start();
   } else {
     log.push({s:current,e:Date.now()}); store.set('ctxLog',log);
@@ -524,6 +621,7 @@ $('ctx').onclick=()=>{
     setStage('rest');
     $('nudge').textContent='Схватка позади. Вдох носом, выдох — сбросьте всё. Сейчас кровь свободно течёт к плаценте, и малыш пополняет запас кислорода.';
     $('nudge').hidden=false;
+    showDockBaby(curStage().lead,null); hideDockBaby(60e3);
     if(!running) start();
     renderLog();
   }
@@ -538,6 +636,8 @@ setCtxBtn();
 setInterval(renderLive,1000);
 setStage(stage);
 renderLog(); renderLive();
+if(current) babyForContraction();
+fitDock();
 </script>
 
 </body>
