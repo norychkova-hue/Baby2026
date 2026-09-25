@@ -9,6 +9,7 @@ from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import Message
 
+import challenges
 import codex
 import coach
 import db
@@ -31,6 +32,7 @@ HELP = """\
 /waist 78 — талия в см (раз в месяц), тоже можно голосом
 /week — итог недели и фокус на следующую
 /focus — мой кодекс и фокус недели (/focus 3 — выбрать пункт самой)
+/challenge — челленджи недели: до трёх целей, которые выбираешь сама. Можно и голосом: «беру челлендж не перекусывать»
 /undo — удалить последнюю запись
 /birth 2026-11-20 — дата родов
 /settings — настройки: кормление грудью, скрывать цифры веса
@@ -156,7 +158,43 @@ async def _week_text() -> str:
         head = "Оставляем тот же фокус ещё на неделю, привычке нужно время."
     focus = codex.title(index)
     db.add_week(result["summary"], focus)
-    return f"{result['summary']}\n\n{head}\nФокус на неделю: {focus}"
+    text = f"{result['summary']}\n\n{head}\nФокус на неделю: {focus}"
+    if lines := challenges.as_lines():
+        text += "\n\n🎯 Челленджи недели:\n" + "\n".join(lines)
+    return text + ("\n\nНа новую неделю можно взять до трёх челленджей — /challenge. "
+                   "А можно и отдохнуть от них, это тоже вариант.")
+
+
+def _challenge_list() -> str:
+    lines = challenges.as_lines()
+    ideas = "\n".join(f"{i}. {idea}" for i, idea in enumerate(codex.CHALLENGE_IDEAS, 1))
+    current = ("🎯 Твои челленджи на эту неделю:\n" + "\n".join(lines)) if lines else "На этой неделе челленджей нет."
+    return (f"{current}\n\nИдеи (из твоего кодекса):\n{ideas}\n\n"
+            "Взять идею: /challenge 1\nСвоя цель: /challenge не есть стоя\nУбрать: /challenge убрать 1\n"
+            f"Максимум {challenges.MAX_PER_WEEK} на неделю, можно одну. В понедельник список обнуляется.")
+
+
+@router.message(Command("challenge"))
+async def challenge(message: Message, command: CommandObject) -> None:
+    args = (command.args or "").strip()
+    if not args:
+        await message.answer(_challenge_list())
+        return
+    words = args.split()
+    if words[0].lower() in ("убрать", "удалить", "стоп") and len(words) == 2 and words[1].isdigit():
+        removed = challenges.remove(int(words[1]))
+        await message.answer(f"Убрала челлендж «{removed}»." if removed else "Нет челленджа с таким номером. Список: /challenge")
+        return
+    if args.isdigit():
+        number = int(args)
+        if not 1 <= number <= len(codex.CHALLENGE_IDEAS):
+            await message.answer(f"Идеи пронумерованы от 1 до {len(codex.CHALLENGE_IDEAS)}. Список: /challenge")
+            return
+        args = codex.CHALLENGE_IDEAS[number - 1]
+    if challenges.add(args):
+        await message.answer(f"🎯 Челлендж на неделю: «{args}». Вечером спрошу, как получилось.")
+    else:
+        await message.answer("Уже три челленджа — это максимум. Если хочешь заменить, сначала убери один: /challenge убрать 1")
 
 
 @router.message(Command("focus"))
@@ -207,6 +245,7 @@ async def _report(message: Message, text: str, heard: bool) -> None:
         await message.answer("Сохранила твой отчёт как есть, но ответить сейчас не могу — что-то со связью. Разберу позже.")
         return
     saved = db.add_report(result["entries"], text, result["measures"])
+    notes = _apply_challenges(result)
     hidden = db.get_profile()["hide_weight"] == "да"
     reply = result["reply"]
     for m in saved:
@@ -214,6 +253,8 @@ async def _report(message: Message, text: str, heard: bool) -> None:
             reply += "\n\n⚖️ Вес записала." if hidden else f"\n\n⚖️ Вес записала: {m['value']:g} кг."
         else:
             reply += f"\n\n📏 Талию записала: {m['value']:g} см."
+    if notes:
+        reply += "\n\n" + "\n".join(notes)
     if len(saved) < len(result["measures"]):
         reply += "\n\nОдно число показалось странным, и я его не записала. Можно повторить или отправить /weight 68.4."
     if result["red_flag"]:
@@ -221,6 +262,27 @@ async def _report(message: Message, text: str, heard: bool) -> None:
     if heard and not (hidden and any(m["kind"] == "weight" for m in result["measures"])):
         reply = f"«{text}»\n\n{reply}"
     await message.answer(reply)
+
+
+def _apply_challenges(result: dict) -> list[str]:
+    """Применяет челленджи из отчёта: сначала отметки (по текущим номерам), потом удаление, потом новые."""
+    notes = []
+    current = challenges.active()
+    for m in result["challenge_marks"]:
+        if 1 <= m["number"] <= len(current):
+            challenges.mark(m["number"], m["kept"])
+            text = current[m["number"] - 1]["text"]
+            notes.append(f"✅ «{text}» — отметила." if m["kept"] else f"〰️ «{text}» — сегодня не вышло, бывает.")
+    for number in sorted(set(result["challenge_remove"]), reverse=True):
+        if removed := challenges.remove(number):
+            notes.append(f"Убрала челлендж «{removed}».")
+    for text in result["challenge_add"]:
+        if challenges.add(text):
+            notes.append(f"🎯 Челлендж на неделю: «{text}».")
+        else:
+            notes.append("Уже три челленджа — это максимум. Сначала убери один: /challenge")
+            break
+    return notes
 
 
 async def reminders(bot: Bot) -> None:
@@ -244,6 +306,9 @@ async def reminders(bot: Bot) -> None:
                     text = random.choice(REMIND_DONE)
                 else:
                     text = random.choice(REMIND_EMPTY)
+                if active := challenges.active():
+                    names = ", ".join(f"«{c['text']}»" for c in active)
+                    text += f"\n\n🎯 И челленджи: {names} — как сегодня?"
                 await bot.send_message(ALLOWED_USER_ID, text)
                 if now.weekday() == 6:
                     await bot.send_message(ALLOWED_USER_ID, await _week_text())

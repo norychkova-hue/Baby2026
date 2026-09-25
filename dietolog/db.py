@@ -27,6 +27,18 @@ CREATE TABLE IF NOT EXISTS measures (
     kind  TEXT NOT NULL,         -- weight / waist
     value REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS challenges (
+    id         INTEGER PRIMARY KEY,
+    week_start TEXT NOT NULL,    -- понедельник недели, ГГГГ-ММ-ДД
+    text       TEXT NOT NULL,    -- «не перекусывать»
+    removed    INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS challenge_days (
+    challenge_id INTEGER NOT NULL,
+    day          TEXT NOT NULL,  -- ГГГГ-ММ-ДД
+    kept         INTEGER NOT NULL,
+    PRIMARY KEY (challenge_id, day)
+);
 CREATE TABLE IF NOT EXISTS weeks (
     id         INTEGER PRIMARY KEY,
     ts         TEXT NOT NULL,

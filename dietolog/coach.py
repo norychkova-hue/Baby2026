@@ -4,6 +4,7 @@ from datetime import date
 
 from anthropic import AsyncAnthropic
 
+import challenges
 import codex
 import db
 import prompts
@@ -44,10 +45,21 @@ LOG_SCHEMA = {
                 "additionalProperties": False,
             },
         },
+        "challenge_add": {"type": "array", "items": {"type": "string"}},
+        "challenge_remove": {"type": "array", "items": {"type": "integer"}},
+        "challenge_marks": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"number": {"type": "integer"}, "kept": {"type": "boolean"}},
+                "required": ["number", "kept"],
+                "additionalProperties": False,
+            },
+        },
         "reply": {"type": "string"},
         "red_flag": {"type": "boolean"},
     },
-    "required": ["entries", "measures", "reply", "red_flag"],
+    "required": ["entries", "measures", "challenge_add", "challenge_remove", "challenge_marks", "reply", "red_flag"],
     "additionalProperties": False,
 }
 
@@ -86,6 +98,10 @@ def _context(days: int) -> str:
     lines.append(f"Кормит грудью: {p['breastfeeding']}.")
     lines.append(f"Фокус этой недели (пункт кодекса): {codex.title(db.focus_index())}")
     lines.append("Режим: наблюдение (первые две недели)." if observing() else "Режим: тихий.")
+    if active := challenges.as_lines():
+        lines.append("Её челленджи этой недели (номер. текст — прогресс):\n" + "\n".join(active))
+    else:
+        lines.append("Челленджей на этой неделе нет.")
     if complaints := db.belly_complaints(7):
         lines.append(f"Жалобы на живот за 7 дней: {complaints} — всего {sum(complaints.values())}.")
 
