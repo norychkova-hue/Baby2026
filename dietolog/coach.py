@@ -32,10 +32,22 @@ LOG_SCHEMA = {
                 "additionalProperties": False,
             },
         },
+        "measures": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "kind": {"type": "string", "enum": ["weight", "waist"]},
+                    "value": {"type": "number"},
+                },
+                "required": ["kind", "value"],
+                "additionalProperties": False,
+            },
+        },
         "reply": {"type": "string"},
         "red_flag": {"type": "boolean"},
     },
-    "required": ["entries", "reply", "red_flag"],
+    "required": ["entries", "measures", "reply", "red_flag"],
     "additionalProperties": False,
 }
 
@@ -109,7 +121,7 @@ async def _ask(task: str, context: str, schema: dict, effort: str) -> dict:
 
 
 async def log_report(text: str) -> dict:
-    """Возвращает {"entries": [...], "reply": str, "red_flag": bool}."""
+    """Возвращает {"entries": [...], "measures": [...], "reply": str, "red_flag": bool}."""
     context = _context(days=3)
     return await _ask(f"{prompts.LOG_TASK}\n\nЕё отчёт:\n{text}", context, LOG_SCHEMA, effort="low")
 

@@ -27,8 +27,8 @@ HELP = """\
 По воскресеньям — итог недели.
 
 Команды:
-/weight 68.5 — вес (лучше раз в неделю, утром)
-/waist 78 — талия в см (раз в месяц)
+/weight 68.5 — вес (лучше раз в неделю, утром). Можно и голосом: «взвесилась, 68 и 5»
+/waist 78 — талия в см (раз в месяц), тоже можно голосом
 /week — итог недели и фокус на следующую
 /focus — мой кодекс и фокус недели (/focus 3 — выбрать пункт самой)
 /undo — удалить последнюю запись
@@ -95,7 +95,9 @@ async def _measure(message: Message, command: CommandObject, kind: str, example:
     except ValueError:
         await message.answer(f"Напиши число, например: {example}")
         return
-    db.add_measure(kind, value)
+    if not db.add_report([], command.text, [{"kind": kind, "value": value}]):
+        await message.answer(f"Число {value:g} похоже на опечатку, не записала. Пример: {example}")
+        return
     hidden = kind == "weight" and db.get_profile()["hide_weight"] == "да"
     await message.answer("Записала. Смотрим только на тренд за недели, не на отдельные дни." if hidden
                          else f"Записала: {value:g}. Смотрим на тренд за недели, а не на отдельные дни.")
@@ -201,14 +203,22 @@ async def _report(message: Message, text: str, heard: bool) -> None:
         result = await coach.log_report(text)
     except Exception:
         log.exception("coach failed")
-        db.add_entries([{"kind": "wellbeing", "tags": ["не разобрано"], "note": text}], text)
+        db.add_report([{"kind": "wellbeing", "tags": ["не разобрано"], "note": text}], text)
         await message.answer("Сохранила твой отчёт как есть, но ответить сейчас не могу — что-то со связью. Разберу позже.")
         return
-    db.add_entries(result["entries"], text)
+    saved = db.add_report(result["entries"], text, result["measures"])
+    hidden = db.get_profile()["hide_weight"] == "да"
     reply = result["reply"]
+    for m in saved:
+        if m["kind"] == "weight":
+            reply += "\n\n⚖️ Вес записала." if hidden else f"\n\n⚖️ Вес записала: {m['value']:g} кг."
+        else:
+            reply += f"\n\n📏 Талию записала: {m['value']:g} см."
+    if len(saved) < len(result["measures"]):
+        reply += "\n\nОдно число показалось странным, и я его не записала. Можно повторить или отправить /weight 68.4."
     if result["red_flag"]:
         reply += "\n\n⚠️ Пожалуйста, покажись врачу. Если состояние резко ухудшается — звони 103 или 112."
-    if heard:
+    if heard and not (hidden and any(m["kind"] == "weight" for m in result["measures"])):
         reply = f"«{text}»\n\n{reply}"
     await message.answer(reply)
 

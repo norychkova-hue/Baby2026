@@ -71,9 +71,20 @@ def set_profile(key: str, value: str) -> None:
         conn.execute("INSERT OR REPLACE INTO profile VALUES (?, ?)", (key, value))
 
 
-def add_entries(entries: list[dict], raw_text: str) -> None:
+# Разумные границы, чтобы ошибка распознавания («686» вместо «68,6») не попала в тренд.
+MEASURE_RANGES = {"weight": (30, 200), "waist": (40, 150)}
+
+
+def add_report(entries: list[dict], raw_text: str, measures: list[dict] = ()) -> list[dict]:
+    """Сохраняет отчёт одним временем — чтобы /undo удалял его целиком. Возвращает принятые замеры."""
     ts = now().isoformat()
+    saved = []
     with connect() as conn:
+        for m in measures:
+            low, high = MEASURE_RANGES.get(m["kind"], (0, 0))
+            if low <= m["value"] <= high:
+                conn.execute("INSERT INTO measures (ts, kind, value) VALUES (?, ?, ?)", (ts, m["kind"], m["value"]))
+                saved.append(m)
         for e in entries:
             conn.execute(
                 "INSERT INTO entries (ts, kind, tags, note, hunger, fullness, belly, raw_text)"
@@ -81,15 +92,17 @@ def add_entries(entries: list[dict], raw_text: str) -> None:
                 (ts, e["kind"], json.dumps(e.get("tags") or [], ensure_ascii=False),
                  *(e.get(f) for f in ENTRY_FIELDS[2:]), raw_text),
             )
+    return saved
 
 
 def undo_last() -> int:
-    """Удаляет записи последнего отчёта (у них общее время). Возвращает сколько удалено."""
+    """Удаляет последний отчёт — записи и замеры с общим временем. Возвращает сколько удалено."""
     with connect() as conn:
-        row = conn.execute("SELECT ts FROM entries ORDER BY id DESC LIMIT 1").fetchone()
-        if not row:
+        ts = conn.execute("SELECT MAX(ts) FROM (SELECT ts FROM entries UNION ALL SELECT ts FROM measures)").fetchone()[0]
+        if not ts:
             return 0
-        return conn.execute("DELETE FROM entries WHERE ts = ?", (row["ts"],)).rowcount
+        return (conn.execute("DELETE FROM entries WHERE ts = ?", (ts,)).rowcount
+                + conn.execute("DELETE FROM measures WHERE ts = ?", (ts,)).rowcount)
 
 
 def entries_since(days: int) -> list[dict]:
@@ -108,11 +121,6 @@ def count_today() -> int:
     today = now().date().isoformat()
     with connect() as conn:
         return conn.execute("SELECT COUNT(*) FROM entries WHERE ts >= ?", (today,)).fetchone()[0]
-
-
-def add_measure(kind: str, value: float) -> None:
-    with connect() as conn:
-        conn.execute("INSERT INTO measures (ts, kind, value) VALUES (?, ?, ?)", (now().isoformat(), kind, value))
 
 
 def measures(kind: str, days: int = 120) -> list[tuple[str, float]]:
