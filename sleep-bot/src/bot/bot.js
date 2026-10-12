@@ -145,7 +145,11 @@ export class Bot {
   }
 
   tapText(res) {
-    if (res.action === 'sleep') return `😴 Уснул в <b>${hm(res.at)}</b>.`;
+    if (res.action === 'sleep') {
+      const st = this.app.state();
+      const tip = st.transferAt ? `\nПерекладывать — после ${hm(st.transferAt)}, когда ручка падает расслабленно.` : '';
+      return `😴 Уснул в <b>${hm(res.at)}</b>.${tip}`;
+    }
     const st = this.app.state();
     const slept = res.start ? ` · спал ${dur((res.at - res.start) / MIN)}` : '';
     const next = st.state === 'awake' && st.nextAt ? `\nУкладывать ≈ ${hm(st.nextAt)}.` : '';

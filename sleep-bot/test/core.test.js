@@ -208,3 +208,16 @@ test('недельный отчёт при малом числе записей 
   assert.equal(rep.enough, false);
   assert.equal(rep.title, 'Мало записей за неделю');
 });
+
+test('дремота на руках до 4 мес: подсказка «перекладывать через 20 мин», потом продление склеивается', () => {
+  const baby = { birth: at('2026-10-05', '10:00'), due: at('2026-10-05', '00:00'), birthWeight: 3420 };
+  const k = '2026-10-12';
+  const dozing = seg(k, '11:00', null);
+  const st = status({ profile: baby, segments: [dozing], weights: [] }, at(k, '11:08'));
+  assert.equal(st.transferAt, at(k, '11:20'));
+  assert.match(st.note, /Перекладывать лучше после 11:20/);
+  assert.equal(status({ profile: baby, segments: [dozing], weights: [] }, at(k, '11:25')).note, null);
+  // проснулся при перекладывании в 11:12, через 10 мин уснул снова — это один сон
+  const b = buildSleeps([seg(k, '11:00', '11:12'), seg(k, '11:22', '12:30')], at(k, '13:00'));
+  assert.equal(b.naps.length, 1);
+});

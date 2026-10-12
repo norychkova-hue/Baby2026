@@ -8,6 +8,9 @@ import { currentLeap } from './leaps.js';
 
 const minutes = (a, b) => (b - a) / MIN;
 
+/** Через сколько минут после засыпания сон становится глубоким и можно перекладывать (до 4 мес) */
+export const TRANSFER_MIN = 20;
+
 /**
  * Режим «будить на кормление» (гайд 0–4, стр. 50; ARCHITECTURE §5):
  * будим, пока вес не вернулся к весу при рождении или прибавка < 150 г/нед.
@@ -126,8 +129,14 @@ export function status(data, now = Date.now()) {
       out.why = feeding.mode === 'free' ? 'вес в порядке, ночью будить не нужно' : null;
       out.ring = { kind: 'sleep', elapsed: sleptMin, total: Math.max(sleptMin, 10 * 60) };
     }
-    // «это нормально?» — короткие сны до 3–4 мес
+    // до ~4 мес сон начинается с быстрой (поверхностной) фазы: перекладывать — не раньше чем через 20 мин
+    // (гайд 0–4, стр. 5 и 39: «ручка падает как тряпочка»)
     out.note = null;
+    out.transferAt = null;
+    if (age.correctedMonths < 4 && sleptMin < TRANSFER_MIN) {
+      out.transferAt = out.since + TRANSFER_MIN * MIN;
+      out.note = `Пока поверхностный сон, любой звук будит. Перекладывать лучше после ${hm(out.transferAt)} — когда ручка падает расслабленно.`;
+    }
   } else if (last) {
     const lastBlock = [...built.naps, ...built.nights].find((b) => b.ids.includes(last.id));
     const lastNapMin = lastBlock?.kind === 'day' ? lastBlock.sleepMin : null;
