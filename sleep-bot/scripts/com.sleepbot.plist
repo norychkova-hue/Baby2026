@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS: автозапуск при входе. Замените ПУТЬ на папку sleep-bot, скопируйте в ~/Library/LaunchAgents/
+     и выполните: launchctl load ~/Library/LaunchAgents/com.sleepbot.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.sleepbot</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/sh</string><string>ПУТЬ/scripts/start-mac-linux.sh</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string></dict>
+  <key>StandardOutPath</key><string>/tmp/sleepbot.log</string>
+  <key>StandardErrorPath</key><string>/tmp/sleepbot.log</string>
+</dict>
+</plist>

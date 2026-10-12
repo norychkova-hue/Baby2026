@@ -1,0 +1,13 @@
+{
+  "name": "sleep-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Сонный помощник — Telegram-бот и Mini App для сна малыша",
+  "type": "module",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "dev": "DEV=1 node --disable-warning=ExperimentalWarning src/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test 'test/**/*.test.js'"
+  }
+}

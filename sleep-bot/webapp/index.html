@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Сонный помощник</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<main class="screen">
+
+  <!-- Главный экран -->
+  <section class="view" id="v-main" hidden>
+    <div class="topbar"><span id="age"></span><button class="linkbtn" type="button" data-go="settings">Настройки</button></div>
+    <div class="nightcard" id="nightCard" hidden>
+      <div><b>Как прошла ночь?</b><span id="nightCardText"></span></div>
+      <button class="pill" type="button" id="nightOpen">Отметить</button>
+    </div>
+    <div class="state" id="state"></div>
+    <div class="note" id="note" hidden></div>
+    <div class="hero">
+      <div class="ring">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="track" cx="100" cy="100" r="94"/><circle class="prog" id="prog" cx="100" cy="100" r="94"/></svg>
+        <button class="circle" id="circle" type="button"></button>
+      </div>
+      <div class="ringnote" id="ringnote"></div>
+      <button class="pill" type="button" id="feedBtn" hidden>🤱 Кормление</button>
+    </div>
+    <div class="leap" id="leap" hidden></div>
+    <div class="day">
+      <div class="dayhead"><b id="napsTitle"></b><span id="napsNorm"></span></div>
+      <div class="naps" id="naps"></div>
+      <div class="hint">Забыли нажать? Нажмите на кружок сна, чтобы поправить, или «＋», чтобы добавить.</div>
+      <div class="night" id="nightLine"></div>
+      <div class="links">
+        <button class="linkbtn" type="button" data-go="report">Отчёт за неделю</button>
+        <button class="linkbtn" type="button" id="weightOpen">Вес</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Отчёт -->
+  <section class="view" id="v-report" hidden>
+    <div class="topbar"><button class="linkbtn" type="button" data-go="main">‹ Назад</button><span id="repSub"></span></div>
+    <div class="tabs"><button type="button" id="repPrev" aria-pressed="true">Прошлая неделя</button><button type="button" id="repCur" aria-pressed="false">Эта неделя</button></div>
+    <h2 class="title" id="repTitle"></h2>
+    <div class="verdict" id="repVerdict"><strong id="repHead"></strong><span id="repSummary"></span></div>
+    <div class="rep" id="repRows"></div>
+    <div class="step" id="repStep"></div>
+    <div class="src" id="repSrc"></div>
+  </section>
+
+  <!-- Профиль и настройки -->
+  <section class="view" id="v-settings" hidden>
+    <div class="topbar"><button class="linkbtn" type="button" data-go="main" id="setBack">‹ Назад</button><span>Настройки</span></div>
+    <h2 class="title" id="setTitle">О малыше</h2>
+    <div class="field"><label for="pName">Имя <span class="opt">по желанию</span></label><input type="text" id="pName" autocomplete="off"></div>
+    <div class="field"><label for="pBirth">Дата и время рождения</label><div class="row2"><input type="date" id="pBirth"><input type="time" id="pBirthTime" value="12:00"></div></div>
+    <div class="field"><label for="pDue">ПДР — предполагаемая дата родов</label><input type="date" id="pDue"><span class="opt">По ней считаются скачки развития и возраст, если малыш родится раньше срока.</span></div>
+    <div class="field"><label for="pWeight">Вес при рождении, г</label><input type="number" id="pWeight" inputmode="numeric" min="500" max="7000" step="10" placeholder="3420"><span class="opt">Пока вес не вернётся к этому, бот напомнит будить на кормление.</span></div>
+    <label class="switch" for="sFeed"><span>Записывать кормления<br><span class="opt">кнопка появится на главном экране</span></span><input type="checkbox" id="sFeed"></label>
+    <div class="err" id="setErr" hidden></div>
+    <button class="ok-btn" type="button" id="setSave">Сохранить</button>
+  </section>
+</main>
+
+<div class="backdrop" id="backdrop" hidden></div>
+
+<!-- «Когда?» после нажатия круга -->
+<div class="sheet pop" id="sheetWhen" hidden>
+  <div class="when"><h3 id="whenTitle"></h3><span class="ago" id="whenAgo">сейчас</span></div>
+  <span class="tbig" id="whenTime"></span>
+  <input type="range" id="whenShift" min="0" max="120" step="5" value="0" aria-label="Сколько минут назад">
+  <div class="scale"><span>сейчас</span><span>1 ч назад</span><span>2 ч назад</span></div>
+  <div class="dots" id="whenSide" hidden><button type="button" aria-pressed="false" data-side="L">Л</button><button type="button" aria-pressed="false" data-side="R">П</button></div>
+  <div class="acts"><button class="ok-btn" type="button" id="whenDone">Готово</button><button class="ghost" type="button" id="whenUndo">Отменить</button></div>
+</div>
+
+<!-- Поправить / добавить сон -->
+<div class="sheet pop" id="sheetEdit" hidden>
+  <div class="when"><h3 id="editTitle">Сон</h3><span class="ago" id="editDur"></span></div>
+  <div class="times"><div><span>Уснул</span><b id="editFrom"></b></div><div><span>Проснулся</span><b id="editTo"></b></div></div>
+  <div class="dual">
+    <span class="nightband" id="editBand"></span>
+    <input type="range" id="editA" min="0" max="60" step="1" aria-label="Уснул">
+    <input type="range" id="editB" min="0" max="60" step="1" aria-label="Проснулся" style="--k:var(--awake)">
+  </div>
+  <div class="scale" id="editScale"></div>
+  <div class="err" id="editErr" hidden></div>
+  <div class="acts"><button class="ok-btn" type="button" id="editSave">Сохранить</button><button class="ghost" type="button" id="editDel">Удалить</button><button class="ghost" type="button" id="editCancel" style="color:var(--muted)">Закрыть</button></div>
+</div>
+
+<!-- Ночь одной записью -->
+<div class="sheet pop" id="sheetNight" hidden>
+  <h3>Как прошла ночь?</h3>
+  <div class="times"><div><span>Уснул</span><b id="nFrom"></b></div><div><span>Проснулся</span><b id="nTo"></b></div></div>
+  <div class="dual">
+    <span class="nightband" id="nBand"></span>
+    <input type="range" id="nA" min="0" max="216" step="1" aria-label="Уснул">
+    <input type="range" id="nB" min="0" max="216" step="1" aria-label="Проснулся" style="--k:var(--awake)">
+  </div>
+  <div class="scale"><span>18:00</span><span>0:00</span><span>6:00</span><span>12:00</span></div>
+  <div class="lbl">Просыпался ночью</div>
+  <div class="dots" id="nWakes"><button type="button" data-v="0">0</button><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3+</button></div>
+  <div class="lbl">Не спал подолгу, 30+ мин? <span class="opt">по желанию</span></div>
+  <div class="dots" id="nLong"><button type="button" data-v="0">Нет</button><button type="button" data-v="1">Да</button></div>
+  <div class="err" id="nErr" hidden></div>
+  <div class="acts"><button class="ok-btn" type="button" id="nSave">Всё верно</button><button class="ghost" type="button" id="nSkip" style="color:var(--muted)">Позже</button></div>
+</div>
+
+<!-- Вес -->
+<div class="sheet pop" id="sheetWeight" hidden>
+  <div class="wbig"><b id="wVal"></b><span id="wDiff"></span></div>
+  <div class="steprow">
+    <button class="round" type="button" id="wMinus" aria-label="Минус 10 грамм">−</button>
+    <input type="range" id="w" step="10" aria-label="Вес в граммах" style="--k:var(--low)">
+    <button class="round" type="button" id="wPlus" aria-label="Плюс 10 грамм">+</button>
+  </div>
+  <div class="scale" id="wScale"></div>
+  <div class="acts"><button class="ok-btn" type="button" id="wSave">Сохранить</button><button class="ghost" type="button" id="wCancel" style="color:var(--muted)">Закрыть</button></div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
